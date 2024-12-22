@@ -1,0 +1,39 @@
+/* Base Colors */
+:root {
+  /* Background Colors */
+  --bg-base: var(--gray-12);
+  --bg-surface: var(--gray-11);
+  --bg-surface-2: var(--gray-10);
+  --bg-surface-3: var(--gray-9);
+  
+  /* Text Colors */
+  --text-1: var(--gray-2);
+  --text-2: var(--gray-4);
+  --text-3: var(--gray-6);
+  
+  /* Border Colors */
+  --border-1: var(--gray-10);
+  --border-2: var(--gray-9);
+  
+  /* Accent Colors */
+  --accent-1: var(--blue-7);
+  --accent-2: var(--blue-6);
+  --accent-3: var(--blue-5);
+  
+  /* Status Colors */
+  --error: var(--red-7);
+  --success: var(--green-7);
+  --warning: var(--yellow-7);
+  
+  /* Component Specific */
+  --tab-active: var(--accent-1);
+  --tab-hover: var(--gray-10);
+  --tooltip-bg: var(--gray-11);
+  
+  /* Spacing */
+  --header-height: var(--size-9);
+  --tab-size: var(--size-9);
+  --spacing-xs: var(--size-1);
+  --spacing-sm: var(--size-2);
+  --spacing-md: var(--size-3);
+}

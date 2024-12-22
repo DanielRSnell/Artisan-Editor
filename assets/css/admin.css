@@ -1,0 +1,37 @@
+.client-blocks-fields textarea {
+    font-family: monospace;
+    resize: vertical;
+}
+
+#client_block_fields .inside {
+    margin: 0;
+    padding: 10px;
+}
+
+.client-blocks-fields label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+/* Editor Link Styles */
+.open-editor {
+    color: #2271b1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.open-editor:hover {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+.open-editor::before {
+    content: "\f212";
+    font-family: dashicons;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 4px;
+}

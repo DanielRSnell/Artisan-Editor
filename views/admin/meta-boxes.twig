@@ -1,0 +1,8 @@
+<div class="client-blocks-fields">
+    {% for field in fields %}
+        <p>
+            <label for="{{ field }}">{{ field|replace({'client_': '', '_': ' '})|title }}:</label><br>
+            <textarea id="{{ field }}" name="{{ field }}" rows="10" style="width: 100%">{{ values[field] }}</textarea>
+        </p>
+    {% endfor %}
+</div>

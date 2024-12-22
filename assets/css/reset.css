@@ -1,0 +1,26 @@
+/* Reset & Base Styles */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: var(--bg-base) !important;
+}
+
+/* Hide WordPress Admin Elements */
+#wpadminbar,
+#adminmenumain,
+#wpfooter,
+.notice,
+#screen-meta,
+#screen-meta-links {
+  display: none !important;
+}
+
+#wpcontent,
+#wpbody,
+#wpbody-content {
+  margin: 0 !important;
+  padding: 0 !important;
+}

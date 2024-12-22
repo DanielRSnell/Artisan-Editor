@@ -1,0 +1,36 @@
+.monaco-editor {
+  --monaco-monospace-font: "JetBrains Mono", "SF Mono", Monaco, Consolas, "Ubuntu Mono", monospace;
+}
+
+.monaco-editor .margin {
+  background: var(--bg-surface) !important;
+}
+
+.monaco-editor .minimap {
+  opacity: 0.6;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider {
+  background: var(--gray-8) !important;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider:hover {
+  background: var(--gray-7) !important;
+}
+
+.monaco-editor .margin-view-overlays .line-numbers {
+  color: var(--text-3) !important;
+}
+
+.monaco-editor .current-line {
+  border: none !important;
+  background: var(--gray-11) !important;
+}
+
+.monaco-editor .selected-text {
+  background: var(--gray-8) !important;
+}
+
+.monaco-editor .monaco-editor-background {
+  background: var(--bg-surface) !important;
+}

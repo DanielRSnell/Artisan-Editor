@@ -1,0 +1,41 @@
+/* Editor Layout */
+.client-blocks-editor {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin-top: 0 !important;
+  background: var(--bg-base);
+  color: var(--text-1);
+  z-index: var(--layer-important);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.editor-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-pane {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.editor-preview {
+  width: 50%;
+  border-left: 1px solid var(--border-1);
+  background: var(--bg-surface);
+  flex: 0 0 auto;
+  position: relative;
+}

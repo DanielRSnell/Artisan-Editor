@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+  <head>
+    <meta charset="{{ site.charset }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACF Form - {{ block_title }}</title>
+    {{ function('acf_form_head') }}
+    {{ function('wp_head') }}
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background-color: #f1f1f1;
+      }
+      .acf-form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('updated') === 'true') {
+          if (window.parent && window.parent.ClientBlocksEditor) {
+            window.parent.ClientBlocksEditor.reloadBlock()
+          }
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <div class="acf-form-container">
+      <h2>Edit Fields for {{ block_title }}</h2>
+      {{ function('acf_form', { post_id: block.ID, post_title: false, post_content: false, submit_value: 'Update Fields' }) }}
+    </div>
+    {{ function('wp_footer') }}
+  </body>
+</html>

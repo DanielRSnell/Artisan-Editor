@@ -1,0 +1,135 @@
+<script>
+window.screen = 'full';
+</script>
+
+<script>
+(function() {
+    // Function to parse URL parameters
+    function getUrlParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+
+    // Function to handle navigation with fallback
+    function navigateBack() {
+        // Check if there's a previous page in history
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Fallback to client blocks listing page
+            window.location.href = '/wp-admin/edit.php?post_type=client_blocks';
+        }
+    }
+
+    // Function to handle the close button click
+    function handleCloseClick(e) {
+        const isFrame = getUrlParameter('frame') === '1';
+        
+        if (isFrame) {
+            // Send message to parent window
+            window.parent.postMessage('close_artisan_editor', '*');
+        } else {
+            navigateBack();
+        }
+    }
+
+    // Add click handler to existing button when DOM is ready
+    function initializeCloseButton() {
+        const closeButton = document.querySelector('#editor-action-close');
+        if (closeButton) {
+            closeButton.addEventListener('click', handleCloseClick);
+        }
+    }
+
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCloseButton);
+    } else {
+        initializeCloseButton();
+    }
+})();
+</script>
+
+<script>
+(function() {
+    let activeIframeWrapper = null;
+
+    // Function to create and open iframe
+    function toggleAcfEditor() {
+        // If iframe exists, remove it with fade out
+        if (activeIframeWrapper) {
+            activeIframeWrapper.style.opacity = '0';
+            
+            setTimeout(() => {
+                activeIframeWrapper.remove();
+                activeIframeWrapper = null;
+            }, 300); // Match transition duration
+            
+            return;
+        }
+
+        // Create iframe element
+        const iframe = document.createElement('iframe');
+        iframe.src = '/wp-admin/edit.php?post_type=acf-field-group&screen=full';
+        iframe.style.cssText = `
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+        `;
+
+        // Find the editor container
+        const container = document.querySelector('.editor-container');
+        if (!container) return;
+
+        // Create a wrapper for the iframe
+        const iframeWrapper = document.createElement('div');
+        iframeWrapper.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: opacity 0.3s ease-out, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        `;
+
+        // Assemble and insert
+        iframeWrapper.appendChild(iframe);
+        container.appendChild(iframeWrapper);
+        
+        // Force reflow to ensure transition works
+        iframeWrapper.offsetHeight;
+        
+        // Trigger transition
+        requestAnimationFrame(() => {
+            iframeWrapper.style.opacity = '1';
+            iframeWrapper.style.transform = 'translateY(0)';
+        });
+
+        // Store reference to active iframe wrapper
+        activeIframeWrapper = iframeWrapper;
+    }
+
+    // Add click handler to the ACF button
+    function initialize() {
+        const acfButton = document.getElementById('editor-acf');
+        if (acfButton) {
+            acfButton.addEventListener('click', toggleAcfEditor);
+        }
+    }
+
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        initialize();
+    }
+})();
+</script>

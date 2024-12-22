@@ -1,0 +1,68 @@
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-1);
+    height: var(--header-height);
+    flex: 0 0 auto;
+}
+
+.editor-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.editor-logo ion-icon {
+    font-size: var(--font-size-3);
+    color: var(--text-2);
+}
+
+.editor-logo span:not(ion-icon) {
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-5);
+    color: var(--text-1);
+}
+
+.breakpoint-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.global-controls {
+    display: flex;
+    align-items: center;
+}
+
+.global-save-button {
+    min-width: var(--size-8);
+    height: var(--size-7);
+    padding: 0 var(--spacing-sm);
+    transition: all var(--animation-fade);
+    background: var(--accent-1);
+    border: none;
+    border-radius: var(--radius-2);
+    color: var(--text-1);
+    font-size: var(--font-size-1);
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.global-save-button:hover {
+    background: var(--accent-2);
+}
+
+.global-save-button:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+}
+
+.global-save-button ion-icon {
+    font-size: var(--font-size-2);
+}

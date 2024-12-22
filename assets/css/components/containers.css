@@ -1,0 +1,24 @@
+#monaco-editor,
+#context-editor,
+#acf-form-container,
+#settings-container {
+  position: absolute;
+  inset: 0;
+  height: 100% !important;
+  overflow: auto;
+  display: none;
+}
+
+#monaco-editor {
+  display: block;
+}
+
+#acf-form-container {
+  background: white;
+  padding: var(--spacing-md);
+}
+
+#settings-container {
+  background: var(--bg-surface);
+  padding: var(--spacing-md);
+}

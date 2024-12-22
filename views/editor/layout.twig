@@ -1,0 +1,14 @@
+{% extends "@client_blocks/editor/layout/base.twig" %}
+
+{% block header %}
+    {% include "@client_blocks/editor/layout/header.twig" %}
+{% endblock %}
+
+{% block sidebar %}
+    {% include "@client_blocks/editor/layout/sidebar.twig" %}
+{% endblock %}
+
+{% block main_content %}
+    {% include "@client_blocks/editor/layout/editor_pane.twig" %}
+    {% include "@client_blocks/editor/layout/preview.twig" %}
+{% endblock %}

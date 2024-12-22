@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+  <head>
+    <meta charset="{{ site.charset }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        {{ block_title }} - Block Editor
+      {% endblock %}
+    </title>
+    {% block styles %}
+      {% for style in editor_styles %}
+        <link rel="stylesheet" href="{{ style.href }}?ver={{ style.version }}" />
+      {% endfor %}
+    {% endblock %}
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        window.clientBlocksEditor = {{ client_blocks_editor_data|json_encode|raw }};
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+    <style>
+    html {
+        font-family: 'Inter', sans-serif;
+    }
+    </style>
+  </head>
+  <body class="client-blocks-editor-page">
+    <div class="client-blocks-editor">
+      {% block header %}
+
+      {% endblock %}
+      <div class="editor-container">
+        {% block sidebar %}
+
+        {% endblock %}
+        <div class="editor-main">
+          {% block main_content %}
+
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    {% block scripts %}
+      {% for script in editor_scripts %}
+        <script src="{{ script.src }}?ver={{ script.version }}"></script>
+      {% endfor %}
+    {% endblock %}
+  </body>
+  {% include '@client_blocks/editor/layout/scripts/actions.twig' %}
+</html>
