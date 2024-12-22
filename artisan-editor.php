@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Client Blocks
+ * Plugin Name: Artisan Editor
  * Description: Custom blocks manager with PHP, template, JS, and CSS support
  * Version: 1.0.2
  * Author: Daniel Snell
