@@ -1,13 +1,10 @@
 <?php
 namespace ClientBlocks\Blocks\Registry;
 
-use ClientBlocks\Blocks\Support\BlockSupports;
-use ClientBlocks\Renderer;
-use Timber\Timber;
-
 class BlockRegistrar
 {
     private static $instance = null;
+    private $blocks_dir;
 
     public static function instance()
     {
@@ -19,70 +16,18 @@ class BlockRegistrar
 
     private function __construct()
     {
+        $upload_dir = wp_upload_dir();
+        $this->blocks_dir = $upload_dir['basedir'] . '/client-blocks/blocks';
+
         add_action('init', [$this, 'register_blocks']);
-        add_action('enqueue_block_editor_assets', [$this, 'enqueue_gutenberg_script']);
     }
 
     public function register_blocks()
     {
-        $blocks = BlockFetcher::get_blocks();
+        $block_folders = glob($this->blocks_dir . '/*', GLOB_ONLYDIR);
 
-        foreach ($blocks as $block) {
-            $this->register_block($block);
+        foreach ($block_folders as $folder) {
+            register_block_type($folder);
         }
-    }
-
-    private function register_block($block)
-    {
-        $block_data = BlockDataProvider::get_block_data($block);
-        $block_name = sanitize_title($block->post_title);
-
-        acf_register_block_type([
-            'name' => $block_name,
-            'title' => $block->post_title,
-            'description' => $block->post_excerpt,
-            'category' => BlockDataProvider::get_block_category($block),
-            'icon' => 'screenoptions',
-            'keywords' => [],
-            'render_callback' => function ($block, $content = '', $is_preview = false, $post_id = 0) use ($block_data, $block_name) {
-                $block['template_id'] = $block_data['template_id'];
-                Renderer::render($block, $content, $is_preview, $post_id, $block_data);
-            },
-            'attributes' => array(
-                'test' => 'Something Here',
-            ),
-            'supports' => BlockSupports::get_supports($block),
-            'example' => array(
-                'attributes' => array(
-                    'mode' => 'preview',
-                    'data' => array(
-                        'example' => true,
-                        'mock_fields' => get_fields($block->ID),
-                    ),
-                ),
-            ),
-        ]);
-    }
-
-    public function enqueue_gutenberg_script()
-    {
-        wp_enqueue_script(
-            'client-blocks-gutenberg-editor',
-            CLIENT_BLOCKS_URL . 'assets/js/gutenberg-editor.js',
-            ['wp-blocks', 'wp-element', 'wp-editor'],
-            filemtime(CLIENT_BLOCKS_PATH . 'assets/js/gutenberg-editor.js'),
-            true
-        );
-
-        $context = Timber::context();
-
-        wp_add_inline_script(
-            'client-blocks-gutenberg-editor',
-            sprintf(
-                '<script id="gb-editor-context" type="application/json">%s</script>',
-                wp_json_encode($context)
-            ),
-            'before'
-        );
     }
 }

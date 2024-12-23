@@ -18,6 +18,7 @@ class EditorPage
     private function __construct()
     {
         add_action('template_redirect', [$this, 'maybe_load_editor']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_editor_assets']);
     }
 
     public function maybe_load_editor()
@@ -33,7 +34,7 @@ class EditorPage
                 $context['breakpoints'] = BreakpointManager::instance()->get_breakpoints();
                 $context['editor_styles'] = $this->get_editor_styles();
                 $context['editor_scripts'] = $this->get_editor_scripts();
-                $context['client_blocks_editor_data'] = $this->get_client_blocks_editor_data();
+                $context['client_blocks_editor_data'] = $this->get_client_blocks_editor_data($block);
                 $context['acf_form_url'] = $this->get_acf_form_url($block->ID);
 
                 if ($_GET['artisan'] === 'form') {
@@ -44,6 +45,34 @@ class EditorPage
                 exit;
             }
         }
+    }
+
+    public function enqueue_editor_assets()
+    {
+        if (!$this->is_editor_page()) {
+            return;
+        }
+
+        foreach ($this->get_editor_styles() as $style) {
+            wp_enqueue_style(
+                'client-blocks-' . basename($style['href'], '.css'),
+                $style['href'],
+                [],
+                $style['version']
+            );
+        }
+
+        foreach ($this->get_editor_scripts() as $script) {
+            wp_enqueue_script(
+                'client-blocks-' . basename($script['src'], '.js'),
+                $script['src'],
+                ['jquery'],
+                $script['version'],
+                true
+            );
+        }
+
+        wp_localize_script('client-blocks-editor', 'clientBlocksEditor', $this->get_client_blocks_editor_data(get_post($_GET['block_id'])));
     }
 
     private function get_editor_styles()
@@ -78,12 +107,13 @@ class EditorPage
         ];
     }
 
-    private function get_client_blocks_editor_data()
+    private function get_client_blocks_editor_data($block)
     {
         return [
             'restUrl' => rest_url('client-blocks/v1'),
             'nonce' => wp_create_nonce('wp_rest'),
-            'blockId' => $_GET['block_id'],
+            'blockId' => $block->ID,
+            'blockSlug' => $block->post_name,
             'breakpoints' => BreakpointManager::instance()->get_breakpoints(),
             'monacoPath' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
         ];

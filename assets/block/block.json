@@ -1,0 +1,29 @@
+{
+    "name": "acf/{{block_slug}}",
+    "title": "{{block_title}}",
+    "description": "{{block_description}}",
+    "category": "formatting",
+    "icon": "admin-generic",
+    "keywords": [
+        "{{block_slug}}",
+        "custom"
+    ],
+    "acf": {
+        "mode": "preview",
+        "renderTemplate": "block.php"
+    },
+    "supports": {
+        "align": true,
+        "mode": false,
+        "jsx": true
+    },
+    "example": {
+        "attributes": {
+            "mode": "preview",
+            "data": {
+                "preview_image_help": "Define an image for the block preview",
+                "is_preview": true
+            }
+        }
+    }
+}
