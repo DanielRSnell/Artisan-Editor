@@ -28,9 +28,28 @@
         #windpress-app {
             display: none!important;
         }
+
+         body {
+        min-height: 100vh;
+    }
+
+    .client-blocks-preview-bar {
+        display: none!important;
+    }
+
+    [data-theme="dark"] {
+        --bg-base: #1e1e1e;
+        background-color: var(--bg-base);
+    }
+
+    [data-theme="light"] {
+        --bg-base: #fff;
+        background-color: var(--bg-base);
+    }
+
     </style>
 </head>
-<body <?php body_class();?>>
+<body <?php body_class();?> data-theme="light">
     <div id="content" class="site-content">
     <main id="main" class="site-main">
     <div id="editor-content">
@@ -61,6 +80,14 @@ echo do_shortcode($client_template);
         // Could also signal specific data if needed
         window.parent.iframeLoaded = true;
     });
+
+    // Theme Switcher
+    window.parent.childThemeSwitch = function() {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme');
+    body.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light');
+    }
+
     </script>
     <?php wp_footer();?>
 </body>

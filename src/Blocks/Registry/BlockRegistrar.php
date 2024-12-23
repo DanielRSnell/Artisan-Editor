@@ -2,6 +2,7 @@
 namespace ClientBlocks\Blocks\Registry;
 
 use ClientBlocks\Blocks\Support\BlockSupports;
+use ClientBlocks\Renderer;
 use Timber\Timber;
 
 class BlockRegistrar
@@ -20,7 +21,6 @@ class BlockRegistrar
     {
         add_action('init', [$this, 'register_blocks']);
         add_action('enqueue_block_editor_assets', [$this, 'enqueue_gutenberg_script']);
-
     }
 
     public function register_blocks()
@@ -46,8 +46,11 @@ class BlockRegistrar
             'keywords' => [],
             'render_callback' => function ($block, $content = '', $is_preview = false, $post_id = 0) use ($block_data, $block_name) {
                 $block['template_id'] = $block_data['template_id'];
-                BlockRenderer::render($block, $content, $is_preview, $post_id, $block_data, $block_name);
+                Renderer::render($block, $content, $is_preview, $post_id, $block_data);
             },
+            'attributes' => array(
+                'test' => 'Something Here',
+            ),
             'supports' => BlockSupports::get_supports($block),
             'example' => array(
                 'attributes' => array(
@@ -71,10 +74,8 @@ class BlockRegistrar
             true
         );
 
-        // Get Timber context and localize it
         $context = Timber::context();
 
-        // Print context data in a script tag
         wp_add_inline_script(
             'client-blocks-gutenberg-editor',
             sprintf(
@@ -83,6 +84,5 @@ class BlockRegistrar
             ),
             'before'
         );
-
     }
 }

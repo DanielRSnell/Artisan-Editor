@@ -3,25 +3,29 @@ namespace ClientBlocks\Admin\Editor;
 
 use Timber\Timber;
 
-class EditorPage {
+class EditorPage
+{
     private static $instance = null;
-    
-    public static function instance() {
+
+    public static function instance()
+    {
         if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
-    private function __construct() {
+
+    private function __construct()
+    {
         add_action('template_redirect', [$this, 'maybe_load_editor']);
     }
-    
-    public function maybe_load_editor() {
+
+    public function maybe_load_editor()
+    {
         if ($this->is_editor_page()) {
             $block_id = intval($_GET['block_id']);
             $block = get_post($block_id);
-            
+
             if ($block && $block->post_type === 'client_blocks') {
                 $context = Timber::context();
                 $context['block'] = $block;
@@ -31,7 +35,7 @@ class EditorPage {
                 $context['editor_scripts'] = $this->get_editor_scripts();
                 $context['client_blocks_editor_data'] = $this->get_client_blocks_editor_data();
                 $context['acf_form_url'] = $this->get_acf_form_url($block->ID);
-                
+
                 if ($_GET['artisan'] === 'form') {
                     Timber::render('@client_blocks/editor/acf_form.twig', $context);
                 } else {
@@ -41,8 +45,9 @@ class EditorPage {
             }
         }
     }
-    
-    private function get_editor_styles() {
+
+    private function get_editor_styles()
+    {
         return [
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/editor.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/editor.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/header.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/header.css')],
@@ -55,8 +60,9 @@ class EditorPage {
             ['href' => 'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css', 'version' => '1.12.1'],
         ];
     }
-    
-    private function get_editor_scripts() {
+
+    private function get_editor_scripts()
+    {
         return [
             ['src' => 'https://code.jquery.com/jquery-3.6.0.min.js', 'version' => '3.6.0'],
             ['src' => 'https://code.jquery.com/ui/1.12.1/jquery-ui.min.js', 'version' => '1.12.1'],
@@ -72,25 +78,28 @@ class EditorPage {
         ];
     }
 
-    private function get_client_blocks_editor_data() {
+    private function get_client_blocks_editor_data()
+    {
         return [
             'restUrl' => rest_url('client-blocks/v1'),
             'nonce' => wp_create_nonce('wp_rest'),
             'blockId' => $_GET['block_id'],
             'breakpoints' => BreakpointManager::instance()->get_breakpoints(),
-            'monacoPath' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs'
+            'monacoPath' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
         ];
     }
-    
-    private function is_editor_page() {
+
+    private function is_editor_page()
+    {
         return isset($_GET['artisan']) && ($_GET['artisan'] === 'editor' || $_GET['artisan'] === 'form') && isset($_GET['block_id']);
     }
 
-    private function get_acf_form_url($post_id) {
+    private function get_acf_form_url($post_id)
+    {
         $permalink = get_permalink($post_id);
         return add_query_arg([
             'block_id' => $post_id,
-            'artisan' => 'form'
+            'artisan' => 'form',
         ], $permalink);
     }
 }

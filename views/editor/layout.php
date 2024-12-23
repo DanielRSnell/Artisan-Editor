@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+<!DOCTYPE >
 <html <?php language_attributes();?>>
 <head>
     <meta charset="<?php bloginfo('charset');?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php
-    $block_id = isset($_GET['block_id']) ? intval($_GET['block_id']) : 0;
-    $block = get_post($block_id);
-    $block_title = $block ? esc_html($block->post_title) : 'Block Editor';
-    ?>
+$block_id = isset($_GET['block_id']) ? intval($_GET['block_id']) : 0;
+$block = get_post($block_id);
+$block_title = $block ? esc_html($block->post_title) : 'Block Editor';
+?>
     <title><?php echo $block_title; ?> - Block Editor</title>
     <?php wp_head();?>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -15,8 +15,8 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-</head>
-<body class="client-blocks-editor-page">
+    </head>
+<body class="client-blocks-editor-page"  data-theme="light">
     <div class="client-blocks-editor">
         <div class="editor-header">
             <div class="editor-logo">
@@ -25,17 +25,17 @@
             </div>
             <div class="breakpoint-controls">
                 <?php
-                $breakpoints = \ClientBlocks\Admin\Editor\BreakpointManager::instance()->get_breakpoints();
-                foreach ($breakpoints as $breakpoint):
-                    $title = "{$breakpoint['name']} ({$breakpoint['width']}px)";
-                    ?>
-                    <button type="button"
-                            class="breakpoint-button"
-                            data-breakpoint="<?php echo esc_attr($breakpoint['id']); ?>"
-                            title="<?php echo esc_attr($title); ?>">
-                        <ion-icon name="<?php echo esc_attr($breakpoint['icon']); ?>"></ion-icon>
-                    </button>
-                <?php endforeach;?>
+$breakpoints = \ClientBlocks\Admin\Editor\BreakpointManager::instance()->get_breakpoints();
+foreach ($breakpoints as $breakpoint):
+    $title = "{$breakpoint['name']} ({$breakpoint['width']}px)";
+    ?>
+					                    <button type="button"
+					                            class="breakpoint-button"
+					                            data-breakpoint="<?php echo esc_attr($breakpoint['id']); ?>"
+					                            title="<?php echo esc_attr($title); ?>">
+					                        <ion-icon name="<?php echo esc_attr($breakpoint['icon']); ?>"></ion-icon>
+					                    </button>
+					                <?php endforeach;?>
                 <button type="button" class="breakpoint-settings" title="Breakpoint Settings">
                     <ion-icon name="settings-outline"></ion-icon>
                 </button>
@@ -96,16 +96,16 @@
                         <div id="monaco-editor"></div>
                         <div id="context-editor"></div>
                         <div id="acf-form-container">
-                            <?php 
-                            if (function_exists('acf_form')) {
-                                acf_form([
-                                    'post_id' => $block_id,
-                                    'form' => true,
-                                    'return' => false,
-                                    'submit_value' => 'Update Fields'
-                                ]);
-                            }
-                            ?>
+                            <?php
+if (function_exists('acf_form')) {
+    acf_form([
+        'post_id' => $block_id,
+        'form' => true,
+        'return' => false,
+        'submit_value' => 'Update Fields',
+    ]);
+}
+?>
                         </div>
                         <div id="settings-container"></div>
                     </div>

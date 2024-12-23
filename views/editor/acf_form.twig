@@ -7,11 +7,20 @@
     {{ function('acf_form_head') }}
     {{ function('wp_head') }}
     <style>
+      html {
+        margin-top: 0 !important;
+      }
+      
       body {
         margin: 0;
         padding: 20px;
         background-color: #f1f1f1;
       }
+      
+      #wpadminbar {
+        display: none !important;
+      }
+      
       .acf-form-container {
         background-color: #fff;
         padding: 20px;
