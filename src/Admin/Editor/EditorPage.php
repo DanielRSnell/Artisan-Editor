@@ -147,7 +147,6 @@ class EditorPage
             ['src' => 'https://code.jquery.com/ui/1.12.1/jquery-ui.min.js', 'version' => '1.12.1'],
             ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js', 'version' => '4.17.21'],
             ['src' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js', 'version' => '0.44.0'],
-            ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/completers.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/completers.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/config.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/config.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/status.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/status.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/preview.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/preview.js')],

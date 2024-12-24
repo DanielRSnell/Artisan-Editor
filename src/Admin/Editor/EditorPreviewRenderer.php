@@ -3,15 +3,17 @@ namespace ClientBlocks\Admin\Editor;
 
 use Timber\Timber;
 
-class EditorPreviewRenderer {
-    public static function render($block_data) {
+class EditorPreviewRenderer
+{
+    public static function render($block_data)
+    {
         try {
             // Start output buffering to catch any unexpected output
             ob_start();
-            
+
             // Set up the context
             $context = Timber::context();
-            
+
             // Mimic Gutenberg block structure
             $block = [
                 'id' => $block_data['id'],
@@ -22,15 +24,12 @@ class EditorPreviewRenderer {
                 'supports' => self::get_block_supports($block_data),
                 'className' => $block_data['className'] ?? '',
                 'anchor' => '',
-                'is_preview' => true
+                'is_preview' => true,
             ];
 
             // Add block to context
             $context['block'] = $block;
-            
-            // Add ACF fields context
-            $context['fields'] = get_fields($block_data['id']) ?: [];
-            
+
             // Execute PHP logic if present
             if (!empty($block_data['data']['php'])) {
                 try {
@@ -43,6 +42,11 @@ class EditorPreviewRenderer {
                 } catch (\ParseError $e) {
                     $context['php_error'] = $e->getMessage();
                 }
+            }
+
+            // if $context['fields'] is false: $context['fields'] = $context['block']['id'];
+            if ($context['fields'] === false) {
+                $context['fields'] = get_fields($context['block']['id']);
             }
 
             // Compile the template using a clean buffer
@@ -59,7 +63,8 @@ class EditorPreviewRenderer {
             // Return only the structured data
             return [
                 'content' => $wrapped_content,
-                'context' => $context
+                'context' => $context,
+                'mock_fields_id' => $context['block']['id'],
             ];
         } catch (\Exception $e) {
             ob_end_clean();
@@ -67,10 +72,11 @@ class EditorPreviewRenderer {
         }
     }
 
-    private static function wrap_with_gutenberg_markup($content, $block_data, $context) {
+    private static function wrap_with_gutenberg_markup($content, $block_data, $context)
+    {
         $block_id = $block_data['id'];
         $block_name = str_replace('acf/', '', $block_data['name']);
-        
+
         // Parse block JSON for additional settings
         $block_json = json_decode($block_data['data']['block_json'] ?? '{}', true);
         $block_settings = $block_json ?? [];
@@ -89,7 +95,7 @@ class EditorPreviewRenderer {
 
         // Build the wrapped content
         $output = [];
-        
+
         // Opening tag
         $output[] = sprintf(
             '<div id="block-%s" class="%s" data-block="%s" data-name="%s" data-preview="true">',
@@ -137,9 +143,10 @@ class EditorPreviewRenderer {
         return implode("\n", $output);
     }
 
-    private static function get_block_supports($block_data) {
+    private static function get_block_supports($block_data)
+    {
         $block_json = json_decode($block_data['data']['block_json'] ?? '{}', true);
-        
+
         return array_merge([
             'align' => true,
             'mode' => true,

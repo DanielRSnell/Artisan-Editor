@@ -8,19 +8,24 @@ window.ClientBlocksPreview = (function($) {
     if (!vfsElement) return;
     
     try {
-        iframe.contentWindow.postMessage({
-            source: 'windpress/dashboard',
-            target: 'windpress/observer',
-            task: 'windpress.code-editor.saved',
-            payload: {
-                volume: JSON.parse(atob(vfsElement.textContent)),
-                comment: 'Activation toggle'
-            }
-        }, '*');
+      iframe.contentWindow.postMessage({
+        source: 'windpress/dashboard',
+        target: 'windpress/observer',
+        task: 'windpress.code-editor.saved',
+        payload: {
+          volume: JSON.parse(atob(vfsElement.textContent)),
+          comment: 'Activation toggle'
+        }
+      }, '*');
     } catch (error) {
-        console.error('Error triggering Windpress update:', error);
+      console.error('Error triggering Windpress update:', error);
     }
-};
+  };
+
+  const updateContextEditor = (context) => {
+    const context_string = JSON.stringify(context, null, 2);
+    window.editorStore.context = context_string;
+  };
 
   return {
     async updatePreview(editorStore, blockData) {
@@ -81,16 +86,14 @@ window.ClientBlocksPreview = (function($) {
           // Initialize block in preview
           this.initializePreviewBlock(iframe, blockData.id);
 
-          // Update context editor if it exists
-          if (window.editor && window.editor.context) {
-            window.editor.context.setValue(JSON.stringify(response.context || {}, null, 2));
-          }
+          // Update both editorStore and context editor
+          updateContextEditor(response.context);
 
           lastPreviewContent = { ...currentContent };
           return response.context;
         }
       } catch (error) {
-        console.error('Error updating preview');
+        console.error('Error updating preview:', error);
         throw error;
       }
     },

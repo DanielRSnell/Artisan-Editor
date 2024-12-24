@@ -4,7 +4,7 @@ const ClientBlocksEditor = (function($) {
   let blockData = {};
   let lastSavedContent = {};
   
-  const editorStore = {
+  window.editorStore = {
     template: '',
     php: '',
     'block-json': '',
@@ -19,9 +19,7 @@ const ClientBlocksEditor = (function($) {
     if (window.ClientBlocksPreview) {
       window.ClientBlocksPreview.updatePreview(editorStore, blockData)
         .then(context => {
-          if (editors.context) {
-            editors.context.setValue(JSON.stringify(context || {}, null, 2));
-          }
+          // updateContextEditor(context);
         })
         .catch(error => {
           console.error('Preview update failed:', error);
