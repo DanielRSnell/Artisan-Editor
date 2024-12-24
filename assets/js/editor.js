@@ -3,7 +3,6 @@ const ClientBlocksEditor = (function($) {
   let currentTab = 'template';
   let blockData = {};
   let lastSavedContent = {};
-  let lastPreviewContent = {};
   let isInitialLoad = true;
   
   const editorStore = {
@@ -16,6 +15,23 @@ const ClientBlocksEditor = (function($) {
     'global-js': '',
     context: '{}'
   };
+
+  const updatePreview = _.debounce(() => {
+    if (window.ClientBlocksPreview && typeof window.ClientBlocksPreview.updatePreview === 'function') {
+      window.ClientBlocksPreview.updatePreview(editorStore, blockData)
+        .then(context => {
+          if (editors.context) {
+            editors.context.setValue(JSON.stringify(context || {}, null, 2));
+          }
+        })
+        .catch(error => {
+          console.error('Preview update failed:', error);
+          ClientBlocksStatus.setStatus('error', 'Preview update failed');
+        });
+    } else {
+      console.warn('Preview module not initialized');
+    }
+  }, 1000);
 
   const init = () => {
     require.config({ paths: { vs: clientBlocksEditor.monacoPath }});
@@ -32,16 +48,17 @@ const ClientBlocksEditor = (function($) {
 
       monaco.editor.setTheme('vs-dark');
       
-      // Initialize editors for each tab that uses Monaco
       initializeEditors();
-      
       loadBlock();
       
       $(ClientBlocksElements.saveButton).on('click', saveBlock);
       $('#global-save-button').on('click', globalSave);
       
-      // Update the editor content when tab is changed
       $(document).on('click', '.tab-button', handleTabClick);
+
+      if (typeof window.ClientBlocksPreview !== 'undefined') {
+        window.ClientBlocksPreview.init();
+      }
     });
   };
 
@@ -62,9 +79,13 @@ const ClientBlocksEditor = (function($) {
         language: tab.language,
         value: editorStore[tab.id] || ''
       });
+
+      editors[tab.id].onDidChangeModelContent(_.debounce(() => {
+        editorStore[tab.id] = editors[tab.id].getValue();
+        updatePreview();
+      }, 500));
     });
 
-    // Show the default active editor
     const defaultTab = monacoTabs.find(tab => tab.defaultActive);
     if (defaultTab) {
       $(`#monaco-${defaultTab.id}`).show();
@@ -79,7 +100,6 @@ const ClientBlocksEditor = (function($) {
     
     if (currentTab === newTab) return;
     
-    // Hide all editor containers
     $('#monaco-editor > div').hide();
     $('#context-editor').hide();
     $('#acf-form-container').hide();
@@ -116,7 +136,6 @@ const ClientBlocksEditor = (function($) {
       
       blockData = response;
       
-      // Map the response data to our editor store
       editorStore.template = response.fields.template || '';
       editorStore.php = response.fields.php || '';
       editorStore['block-json'] = response.fields['block-json'] || '{}';
@@ -125,7 +144,6 @@ const ClientBlocksEditor = (function($) {
       editorStore['global-css'] = response['global-css'] || '';
       editorStore['global-js'] = response['global-js'] || '';
       
-      // Update all editors with their content
       Object.keys(editors).forEach(tabId => {
         editors[tabId].setValue(editorStore[tabId] || '');
       });
@@ -134,7 +152,6 @@ const ClientBlocksEditor = (function($) {
       ClientBlocksStatus.setStatus('success', 'Ready');
       
       lastSavedContent = { ...editorStore };
-      lastPreviewContent = { ...editorStore };
     } catch (error) {
       console.error('Error loading block:', error);
       ClientBlocksStatus.setStatus('error', 'Load failed');
@@ -201,24 +218,11 @@ const ClientBlocksEditor = (function($) {
     }
   };
 
-  const updatePreview = _.debounce(() => {
-    ClientBlocksPreview.updatePreview(
-      editorStore,
-      blockData,
-      lastPreviewContent,
-      ClientBlocksStatus.setStatus
-    ).then(context => {
-      if (editors.context) {
-        editors.context.setValue(JSON.stringify(context || {}, null, 2));
-      }
-      lastPreviewContent = { ...editorStore };
-    });
-  }, 1000);
-
   return {
     init,
     loadBlock,
-    globalSave
+    globalSave,
+    updatePreview
   };
 })(jQuery);
 

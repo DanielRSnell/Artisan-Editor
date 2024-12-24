@@ -20,6 +20,7 @@ class RestController {
     }
 
     public function register_routes() {
+        // Existing routes
         register_rest_route($this->namespace, '/blocks/(?P<id>\d+)', [
             [
                 'methods' => 'GET',
@@ -38,6 +39,41 @@ class RestController {
                 'methods' => 'POST',
                 'callback' => [BlockEndpoints::class, 'global_save_block'],
                 'permission_callback' => [$this, 'check_permission'],
+            ],
+        ]);
+
+        // Add preview endpoint
+        register_rest_route($this->namespace, '/preview', [
+            [
+                'methods' => 'POST',
+                'callback' => [PreviewEndpoint::class, 'render_preview'],
+                'permission_callback' => [$this, 'check_permission'],
+                'args' => [
+                    'block_id' => [
+                        'required' => true,
+                        'type' => 'integer',
+                    ],
+                    'template' => [
+                        'required' => false,
+                        'type' => 'string',
+                    ],
+                    'php' => [
+                        'required' => false,
+                        'type' => 'string',
+                    ],
+                    'css' => [
+                        'required' => false,
+                        'type' => 'string',
+                    ],
+                    'js' => [
+                        'required' => false,
+                        'type' => 'string',
+                    ],
+                    'json' => [
+                        'required' => false,
+                        'type' => 'string',
+                    ],
+                ],
             ],
         ]);
 

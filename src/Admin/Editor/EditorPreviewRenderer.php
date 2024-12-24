@@ -1,52 +1,150 @@
 <?php
 namespace ClientBlocks\Admin\Editor;
 
-use ClientBlocks\Renderer;
+use Timber\Timber;
 
-class EditorPreviewRenderer
-{
-    public static function render($data)
-    {
-        $block_id = $data['block_id'];
-        $block = get_post($block_id);
+class EditorPreviewRenderer {
+    public static function render($block_data) {
+        try {
+            // Start output buffering to catch any unexpected output
+            ob_start();
+            
+            // Set up the context
+            $context = Timber::context();
+            
+            // Mimic Gutenberg block structure
+            $block = [
+                'id' => $block_data['id'],
+                'name' => $block_data['name'],
+                'data' => $block_data['data'],
+                'align' => $block_data['align'] ?? '',
+                'mode' => 'preview',
+                'supports' => self::get_block_supports($block_data),
+                'className' => $block_data['className'] ?? '',
+                'anchor' => '',
+                'is_preview' => true
+            ];
 
-        if (!$block || $block->post_type !== 'client_blocks') {
-            return new \WP_Error('invalid_block', 'Invalid block ID');
+            // Add block to context
+            $context['block'] = $block;
+            
+            // Add ACF fields context
+            $context['fields'] = get_fields($block_data['id']) ?: [];
+            
+            // Execute PHP logic if present
+            if (!empty($block_data['data']['php'])) {
+                try {
+                    ob_start();
+                    $php_result = eval('?>' . $block_data['data']['php']);
+                    ob_end_clean(); // Discard any output from PHP
+                    if (is_array($php_result)) {
+                        $context = array_merge($context, $php_result);
+                    }
+                } catch (\ParseError $e) {
+                    $context['php_error'] = $e->getMessage();
+                }
+            }
+
+            // Compile the template using a clean buffer
+            ob_start();
+            $content = Timber::compile_string($block_data['data']['template'], $context);
+            ob_end_clean(); // Discard any output from Timber
+
+            // Wrap content with Gutenberg-style markup
+            $wrapped_content = self::wrap_with_gutenberg_markup($content, $block_data, $context);
+
+            // Clean any previous output
+            ob_end_clean();
+
+            // Return only the structured data
+            return [
+                'content' => $wrapped_content,
+                'context' => $context
+            ];
+        } catch (\Exception $e) {
+            ob_end_clean();
+            throw new \Exception('Error rendering preview: ' . $e->getMessage());
+        }
+    }
+
+    private static function wrap_with_gutenberg_markup($content, $block_data, $context) {
+        $block_id = $block_data['id'];
+        $block_name = str_replace('acf/', '', $block_data['name']);
+        
+        // Parse block JSON for additional settings
+        $block_json = json_decode($block_data['data']['block_json'] ?? '{}', true);
+        $block_settings = $block_json ?? [];
+
+        // Build classes array similar to Gutenberg
+        $classes = [
+            'wp-block-acf-' . $block_name,
+            'acf-block',
+            'is-preview',
+            !empty($block_settings['align']) ? 'align' . $block_settings['align'] : '',
+            !empty($block_settings['className']) ? $block_settings['className'] : '',
+        ];
+
+        // Filter out empty classes
+        $classes = array_filter($classes);
+
+        // Build the wrapped content
+        $output = [];
+        
+        // Opening tag
+        $output[] = sprintf(
+            '<div id="block-%s" class="%s" data-block="%s" data-name="%s" data-preview="true">',
+            esc_attr($block_id),
+            esc_attr(implode(' ', $classes)),
+            esc_attr($block_id),
+            esc_attr($block_name)
+        );
+
+        // Add block styles
+        if (!empty($block_data['data']['css'])) {
+            $output[] = sprintf(
+                '<style>
+                    /* Block-specific styles */
+                    #block-%s {
+                        %s
+                    }
+                </style>',
+                esc_attr($block_id),
+                $block_data['data']['css']
+            );
         }
 
-        $post_context = json_decode($data['post_context'], true);
-        $mock_fields = json_decode($data['mock_fields'], true);
-        $block_context = json_decode($data['block_context'], true);
+        // Add content
+        $output[] = $content;
 
-        $block_data = [
-            'template_id' => $block_id,
-            'php' => $block_context['php'] ?? '',
-            'template' => $block_context['template'] ?? '',
-            'js' => $block_context['js'] ?? '',
-            'css' => $block_context['css'] ?? '',
-        ];
+        // Add block scripts
+        if (!empty($block_data['data']['js'])) {
+            $output[] = sprintf(
+                '<script>
+                    (function() {
+                        const block = document.getElementById("block-%s");
+                        if (!block) return;
+                        %s
+                    })();
+                </script>',
+                esc_attr($block_id),
+                $block_data['data']['js']
+            );
+        }
 
-        $block = array_merge($block_context, [
-            'id' => $block_id,
-            'post' => $block,
-            'data' => [
-                'mock_fields' => $mock_fields,
-            ],
-        ]);
+        $output[] = '</div>';
 
-        // Remove php/js/css/template from block data
-        unset($block['php'], $block['js'], $block['css'], $block['template']);
+        // Return joined output
+        return implode("\n", $output);
+    }
 
-        $context = Renderer::get_context($block, '', true, $block_id, $block_data);
-        $context = array_merge($context, $post_context);
-
-        ob_start();
-        Renderer::render($block, '', true, $block_id, $block_data);
-        $rendered_content = ob_get_clean();
-
-        return [
-            'content' => $rendered_content,
-            'context' => $context,
-        ];
+    private static function get_block_supports($block_data) {
+        $block_json = json_decode($block_data['data']['block_json'] ?? '{}', true);
+        
+        return array_merge([
+            'align' => true,
+            'mode' => true,
+            'multiple' => true,
+            'jsx' => true,
+        ], $block_json['supports'] ?? []);
     }
 }

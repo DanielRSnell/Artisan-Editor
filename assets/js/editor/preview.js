@@ -1,54 +1,127 @@
 window.ClientBlocksPreview = (function($) {
-  return {
-    hasContentChanged(newContent, lastContent) {
-      return JSON.stringify(newContent) !== JSON.stringify(lastContent);
-    },
+  let lastPreviewContent = {};
 
-    async updatePreview(editorStore, blockData, lastPreviewContent, setStatus) {
+  const toggleActivationIndicator = (iframe) => {
+    if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+            source: 'windpress/dashboard',
+            target: 'windpress/observer',
+            task: 'windpress.code-editor.saved',
+            payload: {
+                volume: JSON.parse(iframe.contentDocument.querySelector('#windpress\\:vfs').textContent),
+                comment: 'Activation toggle'
+            }
+        }, '*');
+    }
+};
+
+  return {
+    async updatePreview(editorStore, blockData) {
       try {
-        // setStatus('warning', 'Updating preview...');
-        
         const iframe = document.getElementById('preview-frame');
         if (!iframe || !iframe.contentDocument) {
           throw new Error('Preview frame not ready');
         }
 
-        const postContext = JSON.parse(iframe.contentDocument.getElementById('post-context').textContent || '{}');
-        const mockFields = JSON.parse(iframe.contentDocument.getElementById('mock-fields').textContent || '{}');
-        const blockContext = JSON.parse(iframe.contentDocument.getElementById('block-context').textContent || '{}');
-        
-        const response = await $.ajax({
-          url: `${clientBlocksEditor.restUrl}/preview`,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': clientBlocksEditor.nonce
-          },
-          data: JSON.stringify({
-            block_id: clientBlocksEditor.blockId,
-            post_context: JSON.stringify(blockData.timber_context || {}),
-            mock_fields: JSON.stringify(blockData.acf || {}),
-            block_context: JSON.stringify({
-              ...blockContext,
-              data: blockData.fields || {},
-              template_id: blockData.id,
-              ...editorStore
-            })
-          })
-        });
-        
         const editorContent = iframe.contentDocument.getElementById('editor-content');
-        if (editorContent) {
-          editorContent.innerHTML = response.content;
+        if (!editorContent) {
+          throw new Error('Editor content container not found');
         }
-        
-        // setStatus('success', 'Preview updated');
-        return response.context;
+
+        const currentContent = {
+          template: editorStore.template,
+          php: editorStore.php,
+          'block-css': editorStore['block-css'],
+          'block-scripts': editorStore['block-scripts'],
+          'block-json': editorStore['block-json']
+        };
+
+        if (this.hasContentChanged(currentContent, lastPreviewContent)) {
+          let blockJson = {};
+          try {
+            blockJson = JSON.parse(editorStore['block-json']);
+          } catch (e) {
+            console.warn('Invalid block JSON:', e);
+          }
+
+          const response = await $.ajax({
+            url: `${clientBlocksEditor.restUrl}/preview`,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-WP-Nonce': clientBlocksEditor.nonce
+            },
+            data: JSON.stringify({
+              block_id: blockData.id,
+              template: editorStore.template,
+              php: editorStore.php,
+              css: editorStore['block-css'],
+              js: editorStore['block-scripts'],
+              json: editorStore['block-json'],
+              align: blockJson.align || '',
+              className: blockJson.className || '',
+              mode: 'preview',
+              supports: blockJson.supports || {}
+            })
+          });
+
+          // Update the preview content
+          editorContent.innerHTML = response.content;
+
+          // Toggle the activation indicator
+          toggleActivationIndicator(iframe);
+
+          // Initialize block in preview
+          this.initializePreviewBlock(iframe, blockData.id);
+
+          // Update context editor if it exists
+          if (window.editor && window.editor.context) {
+            window.editor.context.setValue(JSON.stringify(response.context || {}, null, 2));
+          }
+
+          lastPreviewContent = { ...currentContent };
+          return response.context;
+        }
       } catch (error) {
         console.error('Error updating preview:', error);
-        setStatus('error', 'Preview update failed');
         throw error;
       }
+    },
+
+    initializePreviewBlock(iframe, blockId) {
+      const script = iframe.contentDocument.createElement('script');
+      script.textContent = `
+        (function() {
+          const block = document.getElementById('block-${blockId}');
+          if (!block) return;
+          
+          const event = new CustomEvent('block-ready', { 
+            detail: { 
+              blockId: '${blockId}',
+              isPreview: true 
+            }
+          });
+          block.dispatchEvent(event);
+          
+          block.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+              e.preventDefault();
+            }
+          });
+        })();
+      `;
+      iframe.contentDocument.body.appendChild(script);
+    },
+
+    hasContentChanged(newContent, lastContent) {
+      return JSON.stringify(newContent) !== JSON.stringify(lastContent);
     }
   };
 })(jQuery);
+
+// Initialize preview module when document is ready
+jQuery(document).ready(function() {
+  if (window.ClientBlocksPreview && typeof window.ClientBlocksPreview.init === 'function') {
+    window.ClientBlocksPreview.init();
+  }
+});

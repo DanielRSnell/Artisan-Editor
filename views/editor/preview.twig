@@ -35,19 +35,71 @@
         padding: 0;
         background-color: transparent;
       }
+      
       #wpadminbar {
         display: none !important;
       }
+      
+      [data-theme='dark'] {
+        --bg-base: #1e1e1e;
+        background-color: var(--bg-base);
+      }
+      
+      [data-theme='light'] {
+        --bg-base: #fff;
+        background-color: var(--bg-base);
+      }
     </style>
   </head>
-  <body>
+  <body class="{{ body_class }}" data-theme="light">
     <div class="wp-site-blocks">
       <div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">
+        <div id="windpress-activation" style="padding-block: 1rem; padding-inline: 1rem; width: 100%;" class=""></div>
         <div id="editor-content">
           {# Content will be injected here by the editor #}
         </div>
       </div>
     </div>
     {{ function('wp_footer') }}
+    <script id="editor-preview-script">
+      window.addEventListener('load', function () {
+        window.parent.console.log('🎯 Preview iframe loaded and ready')
+      
+        // check for window.windpress
+        if (window.windpress) {
+          window.parent.console.log('🎯 Windpress detected')
+        }
+      
+        // Could also signal specific data if needed
+        window.parent.iframeLoaded = true
+      })
+      
+      // Theme Switcher
+      window.parent.childThemeSwitch = function () {
+        const body = document.body
+        const currentTheme = body.getAttribute('data-theme')
+        body.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light')
+      }
+      
+      // In the child window (iframe)
+      window.windpressPing = function () {
+        try {
+          const channel = new BroadcastChannel('windpress')
+      
+          channel.postMessage({
+            source: 'windpress/dashboard',
+            target: 'windpress/observer',
+            task: 'windpress.code-editor.saved',
+            payload: {
+              timestamp: Date.now()
+            }
+          })
+      
+          channel.close()
+        } catch (error) {
+          console.error('Error sending Windpress ping:', error)
+        }
+      }
+    </script>
   </body>
 </html>
