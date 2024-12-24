@@ -27,45 +27,76 @@ class BlockEndpoints
             return new WP_Error('block_not_found', 'Block not found', ['status' => 404]);
         }
 
+        $slug = $block->post_name;
         $upload_dir = wp_upload_dir();
-        $block_dir = $upload_dir['basedir'] . '/client-blocks/blocks/' . sanitize_title($block->post_title);
+        $block_dir = $upload_dir['basedir'] . '/client-blocks/blocks/' . $slug;
 
-        $files = [
-            'block.json' => 'block_json',
-            sanitize_title($block->post_title) . '.php' => 'php',
-            'template.twig' => 'template',
-            'styles.css' => 'styles',
-            'scripts.js' => 'scripts',
-        ];
-
-        foreach ($files as $file => $param) {
-            $content = $request->get_param($param);
+        $fields = ['php', 'template', 'js', 'css'];
+        foreach ($fields as $field) {
+            $content = $request->get_param($field);
             if ($content !== null) {
-                file_put_contents($block_dir . '/' . $file, $content);
+                $file_name = $field === 'template' ? 'block.twig' : 'block.' . $field;
+                file_put_contents($block_dir . '/' . $file_name, $content);
             }
         }
 
-        return self::get_block($request);
+        return self::format_block($block);
     }
 
-    private static function format_block($block)
+    public static function global_save_block(WP_REST_Request $request)
     {
+        $block_id = $request->get_param('id');
+        $block = get_post($block_id);
+
+        if (!$block || $block->post_type !== 'client_blocks') {
+            return new WP_Error('block_not_found', 'Block not found', ['status' => 404]);
+        }
+
+        $slug = $block->post_name;
         $upload_dir = wp_upload_dir();
-        $block_dir = $upload_dir['basedir'] . '/client-blocks/blocks/' . sanitize_title($block->post_title);
+        $block_dir = $upload_dir['basedir'] . '/client-blocks/blocks/' . $slug;
+        $global_css_file = $upload_dir['basedir'] . '/client-blocks/global/raw.css';
+
+        $fields = ['php', 'template', 'js', 'css', 'global-css'];
+        foreach ($fields as $field) {
+            $content = $request->get_param($field);
+            if ($content !== null) {
+                if ($field === 'global-css') {
+                    file_put_contents($global_css_file, $content);
+                } else {
+                    $file_name = $field === 'template' ? 'block.twig' : 'block.' . $field;
+                    file_put_contents($block_dir . '/' . $file_name, $content);
+                }
+            }
+        }
+
+        return self::format_block($block);
+    }
+
+    public static function format_block($block)
+    {
+        if (!$block) {
+            return null;
+        }
+
+        $slug = $block->post_name;
+        $upload_dir = wp_upload_dir();
+        $block_dir = $upload_dir['basedir'] . '/client-blocks/blocks/' . $slug;
+        $global_css_file = $upload_dir['basedir'] . '/client-blocks/global/raw.css';
 
         return [
             'id' => $block->ID,
             'title' => $block->post_title,
-            'slug' => $block->post_name,
+            'slug' => $slug,
             'status' => $block->post_status,
             'modified' => $block->post_modified,
-            'files' => [
-                'block_json' => file_get_contents($block_dir . '/block.json'),
-                'php' => file_get_contents($block_dir . '/' . sanitize_title($block->post_title) . '.php'),
-                'template' => file_get_contents($block_dir . '/template.twig'),
-                'styles' => file_get_contents($block_dir . '/styles.css'),
-                'scripts' => file_get_contents($block_dir . '/scripts.js'),
+            'fields' => [
+                'php' => file_get_contents($block_dir . '/block.php'),
+                'template' => file_get_contents($block_dir . '/block.twig'),
+                'js' => file_get_contents($block_dir . '/block.js'),
+                'css' => file_get_contents($block_dir . '/block.css'),
             ],
+            'global-css' => file_get_contents($global_css_file),
         ];
     }
 }

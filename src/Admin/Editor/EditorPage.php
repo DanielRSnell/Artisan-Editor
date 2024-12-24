@@ -1,11 +1,13 @@
 <?php
 namespace ClientBlocks\Admin\Editor;
 
+use ClientBlocks\API\BlockEndpoints;
 use Timber\Timber;
 
 class EditorPage
 {
     private static $instance = null;
+    private $breakpoint_manager;
 
     public static function instance()
     {
@@ -17,6 +19,7 @@ class EditorPage
 
     private function __construct()
     {
+        $this->breakpoint_manager = BreakpointManager::instance();
         add_action('template_redirect', [$this, 'maybe_load_editor']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_editor_assets']);
     }
@@ -31,18 +34,15 @@ class EditorPage
                 $context = Timber::context();
                 $context['block'] = $block;
                 $context['block_title'] = $block->post_title;
-                $context['breakpoints'] = BreakpointManager::instance()->get_breakpoints();
+                $context['breakpoints'] = $this->breakpoint_manager->get_breakpoints();
                 $context['editor_styles'] = $this->get_editor_styles();
                 $context['editor_scripts'] = $this->get_editor_scripts();
                 $context['client_blocks_editor_data'] = $this->get_client_blocks_editor_data($block);
-                $context['acf_form_url'] = $this->get_acf_form_url($block->ID);
 
-                if ($_GET['artisan'] === 'form') {
-                    Timber::render('@client_blocks/editor/acf_form.twig', $context);
-                } else {
-                    Timber::render('@client_blocks/editor/layout.twig', $context);
-                }
+                Timber::render('@client_blocks/editor/layout.twig', $context);
                 exit;
+            } else {
+                wp_die('Invalid block ID or block type.');
             }
         }
     }
@@ -72,7 +72,11 @@ class EditorPage
             );
         }
 
-        wp_localize_script('client-blocks-editor', 'clientBlocksEditor', $this->get_client_blocks_editor_data(get_post($_GET['block_id'])));
+        $block_id = intval($_GET['block_id']);
+        $block = get_post($block_id);
+        if ($block && $block->post_type === 'client_blocks') {
+            wp_localize_script('client-blocks-editor', 'clientBlocksEditor', $this->get_client_blocks_editor_data($block));
+        }
     }
 
     private function get_editor_styles()
@@ -109,27 +113,23 @@ class EditorPage
 
     private function get_client_blocks_editor_data($block)
     {
+        if (!$block) {
+            return [];
+        }
+
         return [
             'restUrl' => rest_url('client-blocks/v1'),
             'nonce' => wp_create_nonce('wp_rest'),
             'blockId' => $block->ID,
             'blockSlug' => $block->post_name,
-            'breakpoints' => BreakpointManager::instance()->get_breakpoints(),
+            'breakpoints' => $this->breakpoint_manager->get_breakpoints(),
             'monacoPath' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
+            'blockData' => BlockEndpoints::format_block($block),
         ];
     }
 
     private function is_editor_page()
     {
-        return isset($_GET['artisan']) && ($_GET['artisan'] === 'editor' || $_GET['artisan'] === 'form') && isset($_GET['block_id']);
-    }
-
-    private function get_acf_form_url($post_id)
-    {
-        $permalink = get_permalink($post_id);
-        return add_query_arg([
-            'block_id' => $post_id,
-            'artisan' => 'form',
-        ], $permalink);
+        return isset($_GET['artisan']) && $_GET['artisan'] === 'editor' && isset($_GET['block_id']);
     }
 }

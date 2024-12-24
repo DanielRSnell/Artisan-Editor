@@ -1,19 +1,22 @@
 <?php
 namespace ClientBlocks\Admin\Editor;
 
-class BreakpointManager {
+class BreakpointManager
+{
     private static $instance = null;
     private $upload_dir;
     private $breakpoints_file;
     
-    public static function instance() {
+    public static function instance()
+    {
         if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
     
-    private function __construct() {
+    private function __construct()
+    {
         $this->upload_dir = wp_upload_dir();
         $this->breakpoints_file = $this->upload_dir['basedir'] . '/client-blocks/data/breakpoints.json';
         
@@ -24,7 +27,22 @@ class BreakpointManager {
         add_action('rest_api_init', [$this, 'register_rest_routes']);
     }
     
-    private function get_default_breakpoints() {
+    public function get_breakpoints()
+    {
+        if (!file_exists($this->breakpoints_file) || filesize($this->breakpoints_file) == 0) {
+            return $this->get_default_breakpoints();
+        }
+        
+        $breakpoints = json_decode(file_get_contents($this->breakpoints_file), true);
+        if (empty($breakpoints) || !is_array($breakpoints)) {
+            return $this->get_default_breakpoints();
+        }
+        
+        return $breakpoints;
+    }
+    
+    private function get_default_breakpoints()
+    {
         return [
             [
                 'id' => 'xs',
@@ -61,40 +79,17 @@ class BreakpointManager {
                 'name' => 'Extra Extra Large',
                 'width' => 1400,
                 'icon' => 'desktop-outline'
-            ],
-            [
-                'id' => 'retina',
-                'name' => 'Retina',
-                'width' => 2560,
-                'icon' => 'expand-outline'
             ]
         ];
     }
     
-    private function save_default_breakpoints() {
-        $default_breakpoints = $this->get_default_breakpoints();
-        file_put_contents($this->breakpoints_file, json_encode($default_breakpoints, JSON_PRETTY_PRINT));
-        return $default_breakpoints;
-    }
-    
-    public function get_breakpoints() {
-        if (!file_exists($this->breakpoints_file) || filesize($this->breakpoints_file) == 0) {
-            return $this->save_default_breakpoints();
-        }
-        
-        $breakpoints = json_decode(file_get_contents($this->breakpoints_file), true);
-        if (empty($breakpoints) || !is_array($breakpoints)) {
-            return $this->save_default_breakpoints();
-        }
-        
-        return $breakpoints;
-    }
-    
-    public function save_breakpoints($breakpoints) {
+    public function save_breakpoints($breakpoints)
+    {
         file_put_contents($this->breakpoints_file, json_encode($breakpoints, JSON_PRETTY_PRINT));
     }
     
-    public function register_rest_routes() {
+    public function register_rest_routes()
+    {
         register_rest_route('client-blocks/v1', '/breakpoints', [
             [
                 'methods' => 'GET',
@@ -111,11 +106,13 @@ class BreakpointManager {
         ]);
     }
     
-    public function get_breakpoints_endpoint() {
+    public function get_breakpoints_endpoint()
+    {
         return rest_ensure_response($this->get_breakpoints());
     }
     
-    public function update_breakpoints_endpoint($request) {
+    public function update_breakpoints_endpoint($request)
+    {
         $breakpoints = $request->get_json_params();
         
         if (!is_array($breakpoints)) {
