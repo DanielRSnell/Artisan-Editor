@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+  <head>
+    <meta charset="{{ site.charset }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preview - {{ block_title }}</title>
+    {{ function('wp_head') }}
+    {# <script id="post-context" type="application/json">
+         {
+           {
+             ;post_context | json_encode | raw
+           }
+         }
+       </script>
+    <script id="mock-fields" type="application/json">
+      {
+        {
+          ;mock_fields | json_encode | raw
+        }
+      }
+    </script>
+    <script id="block-context" type="application/json">
+      {
+        {
+          ;block_context | json_encode | raw
+        }
+      }
+    </script> #}
+    <style>
+      html {
+        margin-top: 0 !important;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: transparent;
+      }
+      #wpadminbar {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wp-site-blocks">
+      <div class="entry-content wp-block-post-content is-layout-flow wp-block-post-content-is-layout-flow">
+        <div id="editor-content">
+          {# Content will be injected here by the editor #}
+        </div>
+      </div>
+    </div>
+    {{ function('wp_footer') }}
+  </body>
+</html>
