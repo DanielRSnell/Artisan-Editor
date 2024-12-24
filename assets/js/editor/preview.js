@@ -2,16 +2,23 @@ window.ClientBlocksPreview = (function($) {
   let lastPreviewContent = {};
 
   const toggleActivationIndicator = (iframe) => {
-    if (iframe.contentWindow) {
+    if (!iframe.contentWindow) return;
+    
+    const vfsElement = iframe.contentDocument.querySelector('#windpress\\:vfs');
+    if (!vfsElement) return;
+    
+    try {
         iframe.contentWindow.postMessage({
             source: 'windpress/dashboard',
             target: 'windpress/observer',
             task: 'windpress.code-editor.saved',
             payload: {
-                volume: JSON.parse(iframe.contentDocument.querySelector('#windpress\\:vfs').textContent),
+                volume: JSON.parse(atob(vfsElement.textContent)),
                 comment: 'Activation toggle'
             }
         }, '*');
+    } catch (error) {
+        console.error('Error triggering Windpress update:', error);
     }
 };
 

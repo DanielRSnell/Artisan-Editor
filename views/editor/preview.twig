@@ -75,31 +75,20 @@
       })
       
       // Theme Switcher
-      window.parent.childThemeSwitch = function () {
+      window.parent.themeSwitch = function () {
         const body = document.body
         const currentTheme = body.getAttribute('data-theme')
         body.setAttribute('data-theme', currentTheme === 'light' ? 'dark' : 'light')
       }
       
       // In the child window (iframe)
-      window.windpressPing = function () {
-        try {
+      window.addEventListener('message', (event) => {
+        if (event.data?.task === 'windpress.code-editor.saved') {
           const channel = new BroadcastChannel('windpress')
-      
-          channel.postMessage({
-            source: 'windpress/dashboard',
-            target: 'windpress/observer',
-            task: 'windpress.code-editor.saved',
-            payload: {
-              timestamp: Date.now()
-            }
-          })
-      
+          channel.postMessage(event.data)
           channel.close()
-        } catch (error) {
-          console.error('Error sending Windpress ping:', error)
         }
-      }
+      })
     </script>
   </body>
 </html>
