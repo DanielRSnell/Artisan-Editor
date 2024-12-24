@@ -17,7 +17,7 @@ const ClientBlocksEditor = (function($) {
   };
 
   const updatePreview = _.debounce(() => {
-    if (window.ClientBlocksPreview && typeof window.ClientBlocksPreview.updatePreview === 'function') {
+    if (window.ClientBlocksPreview) {
       window.ClientBlocksPreview.updatePreview(editorStore, blockData)
         .then(context => {
           if (editors.context) {
@@ -55,10 +55,6 @@ const ClientBlocksEditor = (function($) {
       $('#global-save-button').on('click', globalSave);
       
       $(document).on('click', '.tab-button', handleTabClick);
-
-      if (typeof window.ClientBlocksPreview !== 'undefined') {
-        window.ClientBlocksPreview.init();
-      }
     });
   };
 

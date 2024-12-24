@@ -83,7 +83,7 @@ window.ClientBlocksPreview = (function($) {
           return response.context;
         }
       } catch (error) {
-        console.error('Error updating preview:', error);
+        console.error('Error updating preview');
         throw error;
       }
     },
