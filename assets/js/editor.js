@@ -3,7 +3,6 @@ const ClientBlocksEditor = (function($) {
   let currentTab = 'template';
   let blockData = {};
   let lastSavedContent = {};
-  let isInitialLoad = true;
   
   const editorStore = {
     template: '',
@@ -15,146 +14,6 @@ const ClientBlocksEditor = (function($) {
     'global-js': '',
     context: '{}'
   };
-
-  const configureCssCompletion = (monaco) => {
-        monaco.languages.registerCompletionItemProvider('css', {
-            triggerCharacters: ['"', "'", ' '],
-            provideCompletionItems: (model, position) => {
-                const textUntilPosition = model.getValueInRange({
-                    startLineNumber: 1,
-                    startColumn: 1,
-                    endLineNumber: position.lineNumber,
-                    endColumn: position.column
-                });
-
-                const word = model.getWordUntilPosition(position);
-                const range = {
-                    startLineNumber: position.lineNumber,
-                    endLineNumber: position.lineNumber,
-                    startColumn: word.startColumn,
-                    endColumn: word.endColumn
-                };
-
-                return {
-                    suggestions: window.variables.map(variable => ({
-                        label: variable,
-                        kind: monaco.languages.CompletionItemKind.Value,
-                        insertText: variable,
-                        range: range,
-                        filterText: variable,
-                        sortText: variable
-                    }))
-                };
-            }
-        });
-                console.log('✅ CSS completion provider configured');
-
-    };
-
-    const configureHtmlCompletion = (monaco) => {
-        monaco.languages.registerCompletionItemProvider('html', {
-            triggerCharacters: ['"', "'", ' ', '-'],
-            provideCompletionItems: (model, position) => {
-                console.log('🎯 Completion provider triggered at position:', position);
-
-                const textUntilPosition = model.getValueInRange({
-                    startLineNumber: 1,
-                    startColumn: 1,
-                    endLineNumber: position.lineNumber,
-                    endColumn: position.column
-                });
-                console.log('📝 Text until position:', textUntilPosition);
-
-                // Check for class attribute context
-                const classMatch = textUntilPosition.match(/class\s*=\s*["']([^"']*)$/);
-                console.log('🎨 Class attribute match:', classMatch);
-                
-                // Simplified hyphen detection
-                const withinVarPattern = /var\(\s*-$/;
-                const singleHyphenPattern = /-$/;
-                
-                const isWithinVar = withinVarPattern.test(textUntilPosition);
-                const hasSingleHyphen = singleHyphenPattern.test(textUntilPosition);
-                
-                console.log('🔍 Hyphen context:', { 
-                    isWithinVar,
-                    hasSingleHyphen,
-                    textEndsWithHyphen: textUntilPosition.endsWith('-'),
-                    lastFiveChars: textUntilPosition.slice(-5)
-                });
-
-                const word = model.getWordUntilPosition(position);
-                console.log('📊 Current word:', word);
-
-                const range = {
-                    startLineNumber: position.lineNumber,
-                    endLineNumber: position.lineNumber,
-                    startColumn: word.startColumn,
-                    endColumn: word.endColumn
-                };
-                console.log('📏 Completion range:', range);
-
-                // Show CSS variable suggestions for any hyphen
-                if (hasSingleHyphen) {
-                    const reason = isWithinVar ? 'within var()' : 'single hyphen';
-                    console.log('🎨 Providing CSS variable suggestions', { reason });
-                    
-                    const suggestions = window.variables.map(variable => {
-                        const varName = variable.startsWith('--') ? variable : `--${variable}`;
-                        const insertText = reason === 'single hyphen' ? 
-                            `var(${varName})` : // Wrap in var() for single hyphen
-                            varName;            // Just the variable name within var()
-                        
-                        return {
-                            label: variable,
-                            kind: monaco.languages.CompletionItemKind.Variable,
-                            insertText,
-                            range: range,
-                            filterText: variable,
-                            sortText: variable,
-                            documentation: `CSS Variable: ${variable}`
-                        };
-                    });
-                    console.log('📝 Generated CSS variable suggestions:', suggestions);
-                    
-                    return { suggestions };
-                }
-
-                // Handle class suggestions
-                if (classMatch) {
-                    console.log('🎯 Processing class suggestions');
-                    const currentClasses = classMatch[1].split(' ');
-                    const lastClass = currentClasses[currentClasses.length - 1];
-                    console.log('Current classes:', currentClasses);
-                    console.log('Last class typed:', lastClass);
-
-                    const filteredClasses = window.classes.filter(className => {
-                        const isUsed = currentClasses.slice(0, -1).includes(className);
-                        const matchesFilter = !lastClass || className.toLowerCase().includes(lastClass.toLowerCase());
-                        return !isUsed && matchesFilter;
-                    });
-                    console.log('🔍 Filtered classes:', filteredClasses);
-
-                    const suggestions = filteredClasses.map(className => ({
-                        label: className,
-                        kind: monaco.languages.CompletionItemKind.Value,
-                        insertText: className,
-                        range: range,
-                        filterText: className,
-                        sortText: className,
-                        documentation: `Tailwind Class: ${className}`
-                    }));
-                    console.log('📝 Generated class suggestions:', suggestions);
-
-                    return { suggestions };
-                }
-
-                console.log('⚠️ No matching context found, returning empty suggestions');
-                return { suggestions: [] };
-            }
-        });
-        console.log('✅ HTML completion provider configured');
-    };
 
   const updatePreview = _.debounce(() => {
     if (window.ClientBlocksPreview) {
@@ -168,13 +27,11 @@ const ClientBlocksEditor = (function($) {
           console.error('Preview update failed:', error);
           ClientBlocksStatus.setStatus('error', 'Preview update failed');
         });
-    } else {
-      console.warn('Preview module not initialized');
     }
   }, 1000);
 
   const init = () => {
-    require.config({ paths: { vs: clientBlocksEditor.monacoPath }});
+    require.config({ paths: { vs: ClientBlocksConfig.monacoPath }});
     
     require(['vs/editor/editor.main'], () => {
       monaco.editor.defineTheme('vs-dark', {
@@ -191,8 +48,10 @@ const ClientBlocksEditor = (function($) {
       initializeEditors();
       loadBlock();
 
-      configureCssCompletion(monaco);
-      configureHtmlCompletion(monaco);
+      if (window.ClientBlocksCompleters) {
+        ClientBlocksCompleters.configureCssCompletion(monaco);
+        ClientBlocksCompleters.configureHtmlCompletion(monaco);
+      }
       
       $(ClientBlocksElements.saveButton).on('click', saveBlock);
       $('#global-save-button').on('click', globalSave);
@@ -275,6 +134,7 @@ const ClientBlocksEditor = (function($) {
       
       blockData = response;
       
+      // Map the response fields to editorStore
       editorStore.template = response.fields.template || '';
       editorStore.php = response.fields.php || '';
       editorStore['block-json'] = response.fields['block-json'] || '{}';
@@ -283,8 +143,22 @@ const ClientBlocksEditor = (function($) {
       editorStore['global-css'] = response['global-css'] || '';
       editorStore['global-js'] = response['global-js'] || '';
       
+      // Update all editors with their respective content
       Object.keys(editors).forEach(tabId => {
-        editors[tabId].setValue(editorStore[tabId] || '');
+        if (editors[tabId]) {
+          let content = '';
+          switch(tabId) {
+            case 'block-css':
+              content = response.fields.css || '';
+              break;
+            case 'block-scripts':
+              content = response.fields.js || '';
+              break;
+            default:
+              content = editorStore[tabId] || '';
+          }
+          editors[tabId].setValue(content);
+        }
       });
       
       updatePreview();
@@ -301,9 +175,19 @@ const ClientBlocksEditor = (function($) {
     try {
       ClientBlocksStatus.setStatus('warning', 'Saving...');
       
-      const dataToSave = {
-        [currentTab]: editors[currentTab].getValue()
-      };
+      const dataToSave = {};
+      
+      // Map editor content to the correct field names for the API
+      switch(currentTab) {
+        case 'block-css':
+          dataToSave.css = editors[currentTab].getValue();
+          break;
+        case 'block-scripts':
+          dataToSave.js = editors[currentTab].getValue();
+          break;
+        default:
+          dataToSave[currentTab] = editors[currentTab].getValue();
+      }
       
       await $.ajax({
         url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
@@ -329,10 +213,15 @@ const ClientBlocksEditor = (function($) {
     try {
       ClientBlocksStatus.setStatus('warning', 'Saving all changes...');
       
-      const dataToSave = {};
-      Object.keys(editors).forEach(tabId => {
-        dataToSave[tabId] = editors[tabId].getValue();
-      });
+      const dataToSave = {
+        template: editors.template?.getValue() || '',
+        php: editors.php?.getValue() || '',
+        'block-json': editors['block-json']?.getValue() || '{}',
+        css: editors['block-css']?.getValue() || '',
+        js: editors['block-scripts']?.getValue() || '',
+        'global-css': editors['global-css']?.getValue() || '',
+        'global-js': editors['global-js']?.getValue() || ''
+      };
       
       await $.ajax({
         url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}/global-save`,
@@ -344,8 +233,11 @@ const ClientBlocksEditor = (function($) {
         data: JSON.stringify(dataToSave)
       });
       
+      // Update editorStore with all current values
       Object.keys(editors).forEach(tabId => {
-        editorStore[tabId] = editors[tabId].getValue();
+        if (editors[tabId]) {
+          editorStore[tabId] = editors[tabId].getValue();
+        }
       });
       
       lastSavedContent = { ...editorStore };

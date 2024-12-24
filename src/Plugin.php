@@ -20,14 +20,14 @@ class Plugin {
     }
 
     private function __construct() {
-        add_action('init', [$this, 'init_timber']);
-        add_filter('timber/locations', [$this, 'add_timber_locations']);
+        $this->init_timber();
         $this->init_modules();
     }
 
-    public function init_timber() {
+    private function init_timber() {
         if (class_exists('Timber\Timber')) {
             Timber::init();
+            add_filter('timber/locations', [$this, 'add_timber_locations']);
         }
     }
 

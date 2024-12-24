@@ -4,7 +4,7 @@ Plugin Name: Client Blocks
 Description: Custom blocks manager with PHP, template, JS, and CSS support
 Version: 1.0.0
 Author: Your Name
- */
+*/
 
 if (!defined('ABSPATH')) {
     exit;
@@ -25,4 +25,6 @@ require_once CLIENT_BLOCKS_PATH . 'src/API/RestController.php';
 // Initialize the plugin
 add_action('plugins_loaded', function () {
     ClientBlocks\Plugin::instance();
+    ClientBlocks\Admin\ACF\FieldManager::instance();
+    ClientBlocks\Admin\Screen\ScreenController::instance();
 });
