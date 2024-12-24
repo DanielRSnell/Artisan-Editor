@@ -15,13 +15,77 @@ window.ClientBlocksConfig = {
   }
 };
 
-window.ClientBlocksLanguageConfig = {
-  php: 'php',
-  template: 'html',
-  css: 'css',
-  js: 'javascript',
-  context: 'json',
-  'global-css': 'css'
+window.ClientBlocksTabs = {
+  mainTabs: [
+    {
+      id: 'template',
+      title: 'TWIG Template',
+      icon: 'document-text-outline',
+      language: 'html',
+      defaultActive: true
+    },
+    {
+      id: 'php',
+      title: 'PHP Logic',
+      icon: 'code-slash-outline',
+      language: 'php'
+    },
+    {
+      id: 'block-json',
+      title: 'Block JSON',
+      icon: 'code-working-outline',
+      language: 'json'
+    },
+    {
+      id: 'block-css',
+      title: 'Block CSS',
+      icon: 'brush-outline',
+      language: 'css'
+    },
+    {
+      id: 'block-scripts',
+      title: 'Block Scripts',
+      icon: 'logo-javascript',
+      language: 'javascript'
+    }
+  ],
+  utilityTabs: [
+    {
+      id: 'context',
+      title: 'Context Inspector',
+      icon: 'eye-outline',
+      language: 'json',
+      editor: 'monaco'
+    },
+    {
+      id: 'acf',
+      title: 'Mock Block Controls',
+      icon: 'construct-outline',
+      editor: 'form'
+    },
+    {
+      id: 'global-css',
+      title: 'Global CSS',
+      icon: 'brush-outline',
+      language: 'css',
+      editor: 'monaco'
+    },
+    {
+      id: 'global-js',
+      title: 'Global JS',
+      icon: 'globe-outline',
+      language: 'javascript',
+      editor: 'monaco'
+    }
+  ],
+  bottomTabs: [
+    {
+      id: 'settings',
+      title: 'Editor Settings',
+      icon: 'settings-outline',
+      editor: 'custom'
+    }
+  ]
 };
 
 window.ClientBlocksElements = {

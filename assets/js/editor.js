@@ -1,216 +1,227 @@
 const ClientBlocksEditor = (function($) {
-    let editor;
-    let currentTab = 'php';
-    let blockData = {};
-    let contextEditor;
-    let lastSavedContent = {};
-    let lastPreviewContent = {};
-    let isInitialLoad = true;
+  let editors = {};
+  let currentTab = 'template';
+  let blockData = {};
+  let lastSavedContent = {};
+  let lastPreviewContent = {};
+  let isInitialLoad = true;
+  
+  const editorStore = {
+    template: '',
+    php: '',
+    'block-json': '',
+    'block-css': '',
+    'block-scripts': '',
+    'global-css': '',
+    'global-js': '',
+    context: '{}'
+  };
+
+  const init = () => {
+    require.config({ paths: { vs: clientBlocksEditor.monacoPath }});
     
-    const editorStore = {
-        php: '',
-        template: '',
-        css: '',
-        js: '',
-        'global-css': ''
-    };
-
-    const init = () => {
-        require.config({ paths: { vs: clientBlocksEditor.monacoPath }});
-        
-        require(['vs/editor/editor.main'], () => {
-            monaco.editor.defineTheme('vs-dark', {
-                base: 'vs-dark',
-                inherit: true,
-                rules: [],
-                colors: {
-                    'editor.background': '#1e1e1e'
-                }
-            });
-
-            monaco.editor.setTheme('vs-dark');
-
-            editor = monaco.editor.create($(ClientBlocksElements.editor)[0], {
-                ...ClientBlocksConfig.editorOptions,
-                language: ClientBlocksLanguageConfig[currentTab]
-            });
-            
-            contextEditor = monaco.editor.create($(ClientBlocksElements.contextEditor)[0], {
-                ...ClientBlocksConfig.contextEditorOptions
-            });
-            
-            loadBlock();
-            
-            $(ClientBlocksElements.tabs).on('click', handleTabClick);
-            $(ClientBlocksElements.saveButton).on('click', saveBlock);
-
-            $('#global-save-button').on('click', globalSave);
-
-            $(ClientBlocksElements.editor).show();
-            $('#context-editor').hide();
-            $(ClientBlocksElements.acfForm).hide();
-            $('.editor-top-bar-title').text('PHP Logic');
-            
-            editor.onDidChangeModelContent(() => {
-                editorStore[currentTab] = editor.getValue();
-                if (ClientBlocksPreview.hasContentChanged(editorStore, lastSavedContent)) {
-                    ClientBlocksStatus.setStatus('warning', 'Unsaved changes');
-                }
-                updatePreview();
-            });
-
-            $(ClientBlocksElements.preview).on('load', () => {
-                if (isInitialLoad) {
-                    updatePreview();
-                }
-            });
-        });
-    };
-
-    const loadBlock = async () => {
-        try {
-            ClientBlocksStatus.setStatus('warning', 'Loading...');
-            
-            const response = await $.ajax({
-                url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
-                method: 'GET',
-                headers: { 'X-WP-Nonce': clientBlocksEditor.nonce }
-            });
-            
-            blockData = response;
-            editorStore.php = response.fields.php || '';
-            editorStore.template = response.fields.template || '';
-            editorStore.css = response.fields.css || '';
-            editorStore.js = response.fields.js || '';
-            editorStore['global-css'] = response['global-css'] || '';
-            
-            updateEditor();
-            updatePreview();
-            ClientBlocksStatus.setStatus('success', 'Ready');
-            
-            lastSavedContent = { ...editorStore };
-            lastPreviewContent = { ...editorStore };
-        } catch (error) {
-            console.error('Error loading block:', error);
-            ClientBlocksStatus.setStatus('error', 'Load failed');
+    require(['vs/editor/editor.main'], () => {
+      monaco.editor.defineTheme('vs-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [],
+        colors: {
+          'editor.background': '#1e1e1e'
         }
-    };
+      });
 
-    const saveBlock = async () => {
-        try {
-            ClientBlocksStatus.setStatus('warning', 'Saving...');
-            
-            const dataToSave = {
-                [currentTab]: editorStore[currentTab]
-            };
-            
-            await $.ajax({
-                url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': clientBlocksEditor.nonce
-                },
-                data: JSON.stringify(dataToSave)
-            });
-            
-            lastSavedContent = { ...editorStore };
-            ClientBlocksStatus.setStatus('success', 'Saved');
-            updatePreview();
-        } catch (error) {
-            console.error('Error saving:', error);
-            ClientBlocksStatus.setStatus('error', 'Save failed');
+      monaco.editor.setTheme('vs-dark');
+      
+      // Initialize editors for each tab that uses Monaco
+      initializeEditors();
+      
+      loadBlock();
+      
+      $(ClientBlocksElements.saveButton).on('click', saveBlock);
+      $('#global-save-button').on('click', globalSave);
+      
+      // Update the editor content when tab is changed
+      $(document).on('click', '.tab-button', handleTabClick);
+    });
+  };
+
+  const initializeEditors = () => {
+    const monacoTabs = [...ClientBlocksTabs.mainTabs, ...ClientBlocksTabs.utilityTabs]
+      .filter(tab => tab.editor === 'monaco' || !tab.editor);
+
+    monacoTabs.forEach(tab => {
+      const container = document.createElement('div');
+      container.id = `monaco-${tab.id}`;
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'none';
+      document.getElementById('monaco-editor').appendChild(container);
+
+      editors[tab.id] = monaco.editor.create(container, {
+        ...ClientBlocksConfig.editorOptions,
+        language: tab.language,
+        value: editorStore[tab.id] || ''
+      });
+    });
+
+    // Show the default active editor
+    const defaultTab = monacoTabs.find(tab => tab.defaultActive);
+    if (defaultTab) {
+      $(`#monaco-${defaultTab.id}`).show();
+      currentTab = defaultTab.id;
+    }
+  };
+
+  const handleTabClick = function() {
+    const $tab = $(this);
+    const newTab = $tab.data('tab');
+    const editor = $tab.data('editor') || 'monaco';
+    
+    if (currentTab === newTab) return;
+    
+    // Hide all editor containers
+    $('#monaco-editor > div').hide();
+    $('#context-editor').hide();
+    $('#acf-form-container').hide();
+    $('#settings-container').hide();
+    
+    currentTab = newTab;
+    
+    switch(editor) {
+      case 'monaco':
+        $(`#monaco-${newTab}`).show();
+        if (editors[newTab]) {
+          editors[newTab].layout();
+          editors[newTab].setValue(editorStore[newTab] || '');
         }
-    };
+        break;
+      case 'form':
+        $('#acf-form-container').show();
+        break;
+      case 'custom':
+        $('#settings-container').show();
+        break;
+    }
+  };
 
-    const globalSave = async () => {
-        try {
-            ClientBlocksStatus.setStatus('warning', 'Saving...');
-            
-            await $.ajax({
-                url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}/global-save`,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': clientBlocksEditor.nonce
-                },
-                data: JSON.stringify(editorStore)
-            });
-            
-            lastSavedContent = { ...editorStore };
-            ClientBlocksStatus.setStatus('success', 'All changes saved');
-            updatePreview();
-        } catch (error) {
-            console.error('Error saving:', error);
-            ClientBlocksStatus.setStatus('error', 'Save failed');
-        }
-    };
+  const loadBlock = async () => {
+    try {
+      ClientBlocksStatus.setStatus('warning', 'Loading...');
+      
+      const response = await $.ajax({
+        url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
+        method: 'GET',
+        headers: { 'X-WP-Nonce': clientBlocksEditor.nonce }
+      });
+      
+      blockData = response;
+      
+      // Map the response data to our editor store
+      editorStore.template = response.fields.template || '';
+      editorStore.php = response.fields.php || '';
+      editorStore['block-json'] = response.fields['block-json'] || '{}';
+      editorStore['block-css'] = response.fields.css || '';
+      editorStore['block-scripts'] = response.fields.js || '';
+      editorStore['global-css'] = response['global-css'] || '';
+      editorStore['global-js'] = response['global-js'] || '';
+      
+      // Update all editors with their content
+      Object.keys(editors).forEach(tabId => {
+        editors[tabId].setValue(editorStore[tabId] || '');
+      });
+      
+      updatePreview();
+      ClientBlocksStatus.setStatus('success', 'Ready');
+      
+      lastSavedContent = { ...editorStore };
+      lastPreviewContent = { ...editorStore };
+    } catch (error) {
+      console.error('Error loading block:', error);
+      ClientBlocksStatus.setStatus('error', 'Load failed');
+    }
+  };
 
-    const updateEditor = () => {
-        if (!editor) return;
-        const language = ClientBlocksLanguageConfig[currentTab];
-        const model = editor.getModel();
-        monaco.editor.setModelLanguage(model, language);
-        editor.setValue(editorStore[currentTab] || '');
-    };
+  const saveBlock = async () => {
+    try {
+      ClientBlocksStatus.setStatus('warning', 'Saving...');
+      
+      const dataToSave = {
+        [currentTab]: editors[currentTab].getValue()
+      };
+      
+      await $.ajax({
+        url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': clientBlocksEditor.nonce
+        },
+        data: JSON.stringify(dataToSave)
+      });
+      
+      editorStore[currentTab] = editors[currentTab].getValue();
+      lastSavedContent = { ...editorStore };
+      ClientBlocksStatus.setStatus('success', 'Saved');
+      updatePreview();
+    } catch (error) {
+      console.error('Error saving:', error);
+      ClientBlocksStatus.setStatus('error', 'Save failed');
+    }
+  };
 
-    const updatePreview = _.debounce(() => {
-        ClientBlocksPreview.updatePreview(
-            editorStore,
-            blockData,
-            lastPreviewContent,
-            ClientBlocksStatus.setStatus
-        ).then(context => {
-            updateContextEditor(context);
-            lastPreviewContent = { ...editorStore };
-        });
-    }, 1000);
+  const globalSave = async () => {
+    try {
+      ClientBlocksStatus.setStatus('warning', 'Saving all changes...');
+      
+      const dataToSave = {};
+      Object.keys(editors).forEach(tabId => {
+        dataToSave[tabId] = editors[tabId].getValue();
+      });
+      
+      await $.ajax({
+        url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}/global-save`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': clientBlocksEditor.nonce
+        },
+        data: JSON.stringify(dataToSave)
+      });
+      
+      Object.keys(editors).forEach(tabId => {
+        editorStore[tabId] = editors[tabId].getValue();
+      });
+      
+      lastSavedContent = { ...editorStore };
+      ClientBlocksStatus.setStatus('success', 'All changes saved');
+      updatePreview();
+    } catch (error) {
+      console.error('Error saving:', error);
+      ClientBlocksStatus.setStatus('error', 'Save failed');
+    }
+  };
 
-    const handleTabClick = function() {
-        const $tab = $(this);
-        const newTab = $tab.data('tab');
-        
-        if (currentTab === newTab) return;
-        
-        $(ClientBlocksElements.tabs).removeClass('active');
-        $tab.addClass('active');
-        
-        currentTab = newTab;
-        
-        $(ClientBlocksElements.topBarTitle).text($tab.data('title'));
-        
-        $(ClientBlocksElements.editor).hide();
-        $(ClientBlocksElements.contextEditor).hide();
-        $(ClientBlocksElements.acfForm).hide();
-        $('#settings-container').hide();
-        $(ClientBlocksElements.saveButton).show();
-        
-        if (currentTab === 'acf') {
-            $(ClientBlocksElements.acfForm).show();
-            $(ClientBlocksElements.saveButton).hide();
-        } else if (currentTab === 'context') {
-            $(ClientBlocksElements.contextEditor).show();
-        } else if (currentTab === 'settings') {
-            $('#settings-container').show();
-            $(ClientBlocksElements.saveButton).hide();
-        } else {
-            $(ClientBlocksElements.editor).show();
-            updateEditor();
-        }
-    };
+  const updatePreview = _.debounce(() => {
+    ClientBlocksPreview.updatePreview(
+      editorStore,
+      blockData,
+      lastPreviewContent,
+      ClientBlocksStatus.setStatus
+    ).then(context => {
+      if (editors.context) {
+        editors.context.setValue(JSON.stringify(context || {}, null, 2));
+      }
+      lastPreviewContent = { ...editorStore };
+    });
+  }, 1000);
 
-    const updateContextEditor = (context) => {
-        if (!contextEditor) return;
-        contextEditor.setValue(JSON.stringify(context || {}, null, 2));
-    };
-
-    return {
-        init,
-        loadBlock,
-        globalSave
-    };
+  return {
+    init,
+    loadBlock,
+    globalSave
+  };
 })(jQuery);
 
 jQuery(document).ready(function() {
-    ClientBlocksEditor.init();
+  ClientBlocksEditor.init();
 });

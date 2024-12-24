@@ -1,6 +1,7 @@
 .editor-sidebar {
   width: var(--tab-size);
   background: var(--bg-surface);
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -8,9 +9,27 @@
   flex: 0 0 auto;
 }
 
+.editor-tabs-divider {
+  height: 1px;
+  background: var(--border-1);
+  margin: var(--spacing-sm) 0;
+  width: 100%;
+}
+
 .editor-tabs {
   display: flex;
   flex-direction: column;
+  flex: 1;
+}
+
+.editor-tabs-bottom {
+  padding-bottom: var(--spacing-sm);
+  border-top: 1px solid var(--border-1);
+  margin-top: auto;
+}
+
+.editor-tabs-bottom .tab-button {
+  margin-top: var(--spacing-sm);
 }
 
 .tab-button {

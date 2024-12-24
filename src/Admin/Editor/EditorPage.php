@@ -48,19 +48,14 @@ class EditorPage
             'post' => Timber::get_post($block_id),
         ];
 
-        // Get the block's slug
         $block_slug = $block->post_name;
-
-        // Build the base URL for the block using the client-blocks CPT archive
         $base_url = home_url("client-blocks/{$block_slug}");
 
-        // Add form URL
         $context['acf_form_url'] = add_query_arg([
             'artisan' => 'form',
             'block_id' => $block_id,
         ], $base_url);
 
-        // Add preview URL
         $context['preview_url'] = add_query_arg([
             'artisan' => 'preview',
             'block_id' => $block_id,
@@ -155,6 +150,7 @@ class EditorPage
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/config.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/config.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/status.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/status.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/preview.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/preview.js')],
+            ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/sidebar.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/sidebar.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/api.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/api.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/breakpoints.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/breakpoints.js')],
@@ -168,6 +164,10 @@ class EditorPage
             return [];
         }
 
+        $request = new \WP_REST_Request('GET', '/client-blocks/v1/blocks/' . $block->ID);
+        $request->set_param('id', $block->ID);
+        $block_data = BlockEndpoints::get_block($request);
+
         return [
             'restUrl' => rest_url('client-blocks/v1'),
             'nonce' => wp_create_nonce('wp_rest'),
@@ -175,7 +175,7 @@ class EditorPage
             'blockSlug' => $block->post_name,
             'breakpoints' => $this->breakpoint_manager->get_breakpoints(),
             'monacoPath' => 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
-            'blockData' => BlockEndpoints::format_block($block),
+            'blockData' => $block_data,
         ];
     }
 }
