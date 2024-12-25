@@ -2,9 +2,12 @@ window.ClientBlocksPreviewContext = (function($) {
   let contexts = {};
   let currentContext = { type: 'archive', post_type: 'post' };
   let onContextChange = null;
+  let editorInstance = null;
 
   const init = async () => {
     try {
+      await waitForEditor();
+      
       const response = await fetch(`${clientBlocksEditor.restUrl}/preview-contexts`, {
         headers: {
           'X-WP-Nonce': clientBlocksEditor.nonce
@@ -20,6 +23,20 @@ window.ClientBlocksPreviewContext = (function($) {
     } catch (error) {
       console.error('Error loading preview contexts:', error);
     }
+  };
+
+  const waitForEditor = () => {
+    return new Promise((resolve) => {
+      const checkEditor = () => {
+        if (window.ClientBlocksEditor) {
+          editorInstance = window.ClientBlocksEditor;
+          resolve();
+        } else {
+          setTimeout(checkEditor, 100);
+        }
+      };
+      checkEditor();
+    });
   };
 
   const setContextChangeHandler = (handler) => {
@@ -136,7 +153,7 @@ window.ClientBlocksPreviewContext = (function($) {
   };
 
   const attachContextEvents = () => {
-    $('.context-item').on('click', function() {
+    $('.context-item').on('click', async function() {
       $('.context-item').removeClass('active');
       $(this).addClass('active');
       
@@ -145,8 +162,12 @@ window.ClientBlocksPreviewContext = (function($) {
       
       saveContext(context);
 
-      if (window.ClientBlocksEditor) {
-        window.ClientBlocksEditor.updatePreview();
+      try {
+        if (window.ClientBlocksEditor && typeof window.ClientBlocksEditor.updatePreview === 'function') {
+          await window.ClientBlocksEditor.updatePreview();
+        }
+      } catch (error) {
+        console.error('Error updating preview:', error);
       }
 
       if (window.ClientBlocksPreviewLauncher) {
@@ -193,5 +214,7 @@ window.ClientBlocksPreviewContext = (function($) {
 })(jQuery);
 
 jQuery(document).ready(function() {
-  ClientBlocksPreviewContext.init();
+  setTimeout(() => {
+    ClientBlocksPreviewContext.init();
+  }, 500);
 });

@@ -21,41 +21,32 @@ window.ClientBlocksPreview = (function($) {
         'block-json': editorStore['block-json']
       };
 
-      if (hasContentChanged(currentContent, lastPreviewContent)) {
-        let blockJson = {};
-        try {
-          blockJson = JSON.parse(editorStore['block-json']);
-        } catch (e) {
-          console.warn('Invalid block JSON:', e);
-        }
+      const response = await $.ajax({
+        url: `${clientBlocksEditor.restUrl}/preview`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': clientBlocksEditor.nonce
+        },
+        data: JSON.stringify({
+          block_id: blockData.id,
+          template: editorStore.template,
+          php: editorStore.php,
+          css: editorStore['block-css'],
+          js: editorStore['block-scripts'],
+          json: editorStore['block-json'],
+          align: JSON.parse(editorStore['block-json'] || '{}').align || '',
+          className: JSON.parse(editorStore['block-json'] || '{}').className || '',
+          mode: 'preview',
+          supports: JSON.parse(editorStore['block-json'] || '{}').supports || {},
+          preview_context: previewContext
+        })
+      });
 
-        const response = await $.ajax({
-          url: `${clientBlocksEditor.restUrl}/preview`,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-WP-Nonce': clientBlocksEditor.nonce
-          },
-          data: JSON.stringify({
-            block_id: blockData.id,
-            template: editorStore.template,
-            php: editorStore.php,
-            css: editorStore['block-css'],
-            js: editorStore['block-scripts'],
-            json: editorStore['block-json'],
-            align: blockJson.align || '',
-            className: blockJson.className || '',
-            mode: 'preview',
-            supports: blockJson.supports || {},
-            preview_context: previewContext
-          })
-        });
-
-        editorContent.innerHTML = response.content;
-        initializePreviewBlock(iframe, blockData.id);
-        lastPreviewContent = { ...currentContent };
-        return response.context;
-      }
+      editorContent.innerHTML = response.content;
+      initializePreviewBlock(iframe, blockData.id);
+      lastPreviewContent = { ...currentContent };
+      return response.context;
     } catch (error) {
       console.error('Error updating preview:', error);
       throw error;
@@ -87,36 +78,30 @@ window.ClientBlocksPreview = (function($) {
     iframe.contentDocument.body.appendChild(script);
   };
 
-  const hasContentChanged = (newContent, lastContent) => {
-    return JSON.stringify(newContent) !== JSON.stringify(lastContent);
-  };
-
   return {
     updatePreview,
-    initializePreviewBlock,
-    hasContentChanged
+    initializePreviewBlock
   };
 })(jQuery);
 
-
 window.updateWindpress = () => {
-    const iframe = document.getElementById('preview-frame');
-    if (!iframe.contentWindow) return;
-    
-    const vfsElement = iframe.contentDocument.querySelector('#windpress\\:vfs');
-    if (!vfsElement) return;
-    
-    try {
-      iframe.contentWindow.postMessage({
-        source: 'windpress/dashboard',
-        target: 'windpress/observer',
-        task: 'windpress.code-editor.saved',
-        payload: {
-          volume: JSON.parse(atob(vfsElement.textContent)),
-          comment: 'Activation toggle'
-        }
-      }, '*');
-    } catch (error) {
-      console.error('Error triggering Windpress update:', error);
-    }
-  };
+  const iframe = document.getElementById('preview-frame');
+  if (!iframe.contentWindow) return;
+  
+  const vfsElement = iframe.contentDocument.querySelector('#windpress\\:vfs');
+  if (!vfsElement) return;
+  
+  try {
+    iframe.contentWindow.postMessage({
+      source: 'windpress/dashboard',
+      target: 'windpress/observer',
+      task: 'windpress.code-editor.saved',
+      payload: {
+        volume: JSON.parse(atob(vfsElement.textContent)),
+        comment: 'Activation toggle'
+      }
+    }, '*');
+  } catch (error) {
+    console.error('Error triggering Windpress update:', error);
+  }
+};

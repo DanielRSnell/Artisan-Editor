@@ -3,6 +3,8 @@ const ClientBlocksEditor = (function($) {
   let currentTab = 'template';
   let blockData = {};
   let lastSavedContent = {};
+  let lastPayload = null;
+  let isUpdating = false;
   
   window.editorStore = {
     template: '',
@@ -15,27 +17,79 @@ const ClientBlocksEditor = (function($) {
     context: '{}'
   };
 
-  const updatePreview = () => {
-    if (window.ClientBlocksPreview) {
-      const previewContext = window.ClientBlocksPreviewContext?.getCurrentContext() || { 
-        type: 'home', 
-        preview_path: 'home' 
-      };
+  const createPreviewPayload = (editorStore, blockData, previewContext) => {
+    return {
+      block_id: blockData.id,
+      template: editorStore.template,
+      php: editorStore.php,
+      css: editorStore['block-css'],
+      js: editorStore['block-scripts'],
+      json: editorStore['block-json'],
+      align: JSON.parse(editorStore['block-json'] || '{}').align || '',
+      className: JSON.parse(editorStore['block-json'] || '{}').className || '',
+      mode: 'preview',
+      supports: JSON.parse(editorStore['block-json'] || '{}').supports || {},
+      preview_context: previewContext
+    };
+  };
 
-      window.ClientBlocksPreview.updatePreview(editorStore, blockData, previewContext)
-        .then(context => {
-          if (editors.context) {
-            editors.context.setValue(JSON.stringify(context, null, 2));
-            window.updateWindpress();
-          }
-        })
-        .catch(error => {
-          return error;
-        });
+  const hasPayloadChanged = (newPayload) => {
+    if (!lastPayload) return true;
+    return JSON.stringify(newPayload) !== JSON.stringify(lastPayload);
+  };
+
+  const debouncedPreviewUpdate = _.debounce(async (payload) => {
+    if (isUpdating) return;
+    isUpdating = true;
+
+    try {
+      const context = await window.ClientBlocksPreview.updatePreview(
+        editorStore, 
+        blockData, 
+        payload.preview_context
+      );
+
+      if (editors.context) {
+        editors.context.setValue(JSON.stringify(context, null, 2));
+        window.updateWindpress();
+      }
+
+      lastPayload = payload;
+      isUpdating = false;
+      return context;
+    } catch (error) {
+      console.error('Preview update failed:', error);
+      ClientBlocksStatus.setStatus('error', 'Preview update failed');
+      isUpdating = false;
+      throw error;
     }
+  }, 500);
+
+  const updatePreview = async () => {
+    if (!window.ClientBlocksPreview) return;
+
+    const previewContext = window.ClientBlocksPreviewContext?.getCurrentContext() || { 
+      type: 'home', 
+      preview_path: 'home' 
+    };
+
+    const newPayload = createPreviewPayload(editorStore, blockData, previewContext);
+    
+    if (!hasPayloadChanged(newPayload)) {
+      return lastPayload?.context;
+    }
+
+    return debouncedPreviewUpdate(newPayload);
   };
 
   const init = () => {
+    window.ClientBlocksEditor = {
+      updatePreview: updatePreview,
+      init: init,
+      loadBlock: loadBlock,
+      globalSave: globalSave
+    };
+
     require.config({ paths: { vs: ClientBlocksConfig.monacoPath }});
     
     require(['vs/editor/editor.main'], () => {
