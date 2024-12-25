@@ -132,6 +132,7 @@ class EditorPage
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/header.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/header.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/sidebar.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/sidebar.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/preview.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/preview.css')],
+            ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/preview-context.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/preview-context.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/breakpoints.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/breakpoints.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/topbar.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/topbar.css')],
             ['href' => CLIENT_BLOCKS_URL . 'assets/css/components/monaco.css', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/css/components/monaco.css')],
@@ -150,6 +151,9 @@ class EditorPage
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/config.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/config.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/status.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/status.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/preview.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/preview.js')],
+
+            ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/preview-context.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/preview-context.js')],
+            ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/preview-context-launcher.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/preview-context-launcher.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/sidebar.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/sidebar.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor/api.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor/api.js')],
             ['src' => CLIENT_BLOCKS_URL . 'assets/js/editor.js', 'version' => filemtime(CLIENT_BLOCKS_PATH . 'assets/js/editor.js')],

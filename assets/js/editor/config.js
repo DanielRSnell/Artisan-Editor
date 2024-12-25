@@ -51,9 +51,15 @@ window.ClientBlocksTabs = {
   ],
   utilityTabs: [
     {
+      id: 'preview-context',
+      title: 'Preview Context',
+      icon: 'eye-outline',
+      editor: 'custom'
+    },
+    {
       id: 'context',
       title: 'Context Inspector',
-      icon: 'eye-outline',
+      icon: 'code-outline',
       language: 'json',
       editor: 'monaco'
     },
@@ -95,6 +101,7 @@ window.ClientBlocksElements = {
   tabs: '.tab-button',
   acfForm: '#acf-form-container',
   contextEditor: '#context-editor',
+  previewContext: '#preview-context-container',
   topBarTitle: '.editor-top-bar-title',
   statusIndicator: '.editor-status-indicator',
   statusText: '.editor-status-text'

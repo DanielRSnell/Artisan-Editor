@@ -17,6 +17,9 @@
 {% block main_content %}
   {% include "@client_blocks/editor/layout/editor_pane.twig" %}
   {% include "@client_blocks/editor/layout/preview.twig" %}
+  
+  {# Add the preview context container here #}
+  <div id="preview-context-container" class="preview-context-container"></div>
 {% endblock %}
 
 {% block scripts %}

@@ -17,13 +17,20 @@ const ClientBlocksEditor = (function($) {
 
   const updatePreview = _.debounce(() => {
     if (window.ClientBlocksPreview) {
-      window.ClientBlocksPreview.updatePreview(editorStore, blockData)
+      const previewContext = window.ClientBlocksPreviewContext?.getCurrentContext() || { 
+        type: 'home', 
+        preview_path: 'home' 
+      };
+
+      window.ClientBlocksPreview.updatePreview(editorStore, blockData, previewContext)
         .then(context => {
-          // updateContextEditor(context);
+          if (editors.context) {
+            editors.context.setValue(JSON.stringify(context, null, 2));
+            window.updateWindpress();
+          }
         })
         .catch(error => {
-          console.error('Preview update failed:', error);
-          ClientBlocksStatus.setStatus('error', 'Preview update failed');
+          return error;
         });
     }
   }, 1000);
@@ -100,6 +107,7 @@ const ClientBlocksEditor = (function($) {
     $('#context-editor').hide();
     $('#acf-form-container').hide();
     $('#settings-container').hide();
+    $('#preview-context-container').hide();
     
     currentTab = newTab;
     
@@ -115,7 +123,11 @@ const ClientBlocksEditor = (function($) {
         $('#acf-form-container').show();
         break;
       case 'custom':
-        $('#settings-container').show();
+        if (newTab === 'preview-context') {
+          $('#preview-context-container').show();
+        } else {
+          $('#settings-container').show();
+        }
         break;
     }
   };
@@ -126,13 +138,11 @@ const ClientBlocksEditor = (function($) {
       
       const response = await $.ajax({
         url: `${clientBlocksEditor.restUrl}/blocks/${clientBlocksEditor.blockId}`,
-        method: 'GET',
         headers: { 'X-WP-Nonce': clientBlocksEditor.nonce }
       });
       
       blockData = response;
       
-      // Map the response fields to editorStore
       editorStore.template = response.fields.template || '';
       editorStore.php = response.fields.php || '';
       editorStore['block-json'] = response.fields['block-json'] || '{}';
@@ -141,7 +151,6 @@ const ClientBlocksEditor = (function($) {
       editorStore['global-css'] = response['global-css'] || '';
       editorStore['global-js'] = response['global-js'] || '';
       
-      // Update all editors with their respective content
       Object.keys(editors).forEach(tabId => {
         if (editors[tabId]) {
           let content = '';
@@ -175,7 +184,6 @@ const ClientBlocksEditor = (function($) {
       
       const dataToSave = {};
       
-      // Map editor content to the correct field names for the API
       switch(currentTab) {
         case 'block-css':
           dataToSave.css = editors[currentTab].getValue();
@@ -231,7 +239,6 @@ const ClientBlocksEditor = (function($) {
         data: JSON.stringify(dataToSave)
       });
       
-      // Update editorStore with all current values
       Object.keys(editors).forEach(tabId => {
         if (editors[tabId]) {
           editorStore[tabId] = editors[tabId].getValue();

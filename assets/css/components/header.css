@@ -1,68 +1,136 @@
 .editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 var(--spacing-md);
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border-1);
-    height: var(--header-height);
-    flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-1);
+  height: var(--header-height);
+  flex: 0 0 auto;
 }
 
 .editor-logo {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .editor-logo ion-icon {
-    font-size: var(--font-size-3);
-    color: var(--text-2);
+  font-size: var(--font-size-3);
+  color: var(--text-2);
 }
 
-.editor-logo span:not(ion-icon) {
-    font-size: var(--font-size-1);
-    font-weight: var(--font-weight-5);
-    color: var(--text-1);
+.editor-logo span {
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-5);
+  color: var(--text-1);
 }
 
-.breakpoint-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.preview-context-controls {
+  display: flex;
+  align-items: center;
+}
+
+.preview-context-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-sm);
+  height: var(--size-7);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--animation-fade);
+}
+
+.preview-context-button:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-1);
+  color: var(--text-1);
+}
+
+.preview-context-button ion-icon {
+  font-size: var(--font-size-2);
+}
+
+.preview-context-button .current-context {
+  font-size: var(--font-size-0);
+  min-width: 100px;
+  text-align: left;
+}
+
+.preview-context-dropdown {
+  position: absolute;
+  top: calc(var(--header-height) - 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-3);
+  z-index: var(--layer-dropdown);
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  display: none;
+}
+
+.preview-context-dropdown.active {
+  display: block;
+  animation: dropdownFade 0.2s ease-out;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) translateX(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
 }
 
 .global-controls {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
-.global-save-button {
-    min-width: var(--size-8);
-    height: var(--size-7);
-    padding: 0 var(--spacing-sm);
-    transition: all var(--animation-fade);
-    background: var(--accent-1);
-    border: none;
-    border-radius: var(--radius-2);
-    color: var(--text-1);
-    font-size: var(--font-size-1);
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.editor-action-button {
+  width: var(--size-7);
+  height: var(--size-7);
+  padding: 0;
+  border: 1px solid var(--border-2);
+  background: var(--bg-surface);
+  color: var(--text-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition: all var(--animation-fade);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.global-save-button:hover {
-    background: var(--accent-2);
+.editor-action-button:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-1);
+  color: var(--text-1);
 }
 
-.global-save-button:disabled {
-    opacity: var(--opacity-disabled);
-    cursor: not-allowed;
+.editor-action-button ion-icon {
+  font-size: var(--font-size-2);
 }
 
-.global-save-button ion-icon {
-    font-size: var(--font-size-2);
+.editor-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

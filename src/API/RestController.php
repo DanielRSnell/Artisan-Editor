@@ -1,9 +1,6 @@
 <?php
 namespace ClientBlocks\API;
 
-use ClientBlocks\Admin\Editor\GlobalCSSManager;
-use ClientBlocks\Admin\Editor\GlobalJSManager;
-
 class RestController {
     private static $instance = null;
     private $namespace = 'client-blocks/v1';
@@ -20,7 +17,6 @@ class RestController {
     }
 
     public function register_routes() {
-        // Existing routes
         register_rest_route($this->namespace, '/blocks/(?P<id>\d+)', [
             [
                 'methods' => 'GET',
@@ -42,63 +38,18 @@ class RestController {
             ],
         ]);
 
-        // Add preview endpoint
         register_rest_route($this->namespace, '/preview', [
             [
                 'methods' => 'POST',
                 'callback' => [PreviewEndpoint::class, 'render_preview'],
                 'permission_callback' => [$this, 'check_permission'],
-                'args' => [
-                    'block_id' => [
-                        'required' => true,
-                        'type' => 'integer',
-                    ],
-                    'template' => [
-                        'required' => false,
-                        'type' => 'string',
-                    ],
-                    'php' => [
-                        'required' => false,
-                        'type' => 'string',
-                    ],
-                    'css' => [
-                        'required' => false,
-                        'type' => 'string',
-                    ],
-                    'js' => [
-                        'required' => false,
-                        'type' => 'string',
-                    ],
-                    'json' => [
-                        'required' => false,
-                        'type' => 'string',
-                    ],
-                ],
             ],
         ]);
 
-        register_rest_route($this->namespace, '/global-css', [
+        register_rest_route($this->namespace, '/preview-contexts', [
             [
                 'methods' => 'GET',
-                'callback' => [GlobalCSSManager::class, 'get_css_endpoint'],
-                'permission_callback' => '__return_true',
-            ],
-            [
-                'methods' => 'POST',
-                'callback' => [GlobalCSSManager::class, 'update_css_endpoint'],
-                'permission_callback' => [$this, 'check_permission'],
-            ],
-        ]);
-
-        register_rest_route($this->namespace, '/global-js', [
-            [
-                'methods' => 'GET',
-                'callback' => [GlobalJSManager::class, 'get_js_endpoint'],
-                'permission_callback' => '__return_true',
-            ],
-            [
-                'methods' => 'POST',
-                'callback' => [GlobalJSManager::class, 'update_js_endpoint'],
+                'callback' => [PreviewContextEndpoint::class, 'get_preview_contexts'],
                 'permission_callback' => [$this, 'check_permission'],
             ],
         ]);

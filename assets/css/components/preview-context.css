@@ -1,0 +1,116 @@
+.preview-context-container {
+  display: none;
+  position: fixed;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-3);
+  z-index: 99999;
+  width: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.preview-context-container.active {
+  display: block;
+}
+
+.preview-context-selector {
+  padding: var(--spacing-md);
+}
+
+.context-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.context-group:last-child {
+  margin-bottom: 0;
+}
+
+.context-group h3 {
+  font-size: var(--font-size-1);
+  color: var(--text-1);
+  margin: 0 0 var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--border-1);
+}
+
+.context-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.context-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition: all var(--animation-fade);
+}
+
+.context-item:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-2);
+}
+
+.context-item.active {
+  background: var(--accent-1);
+  border-color: var(--accent-2);
+  color: var(--text-1);
+}
+
+.context-item ion-icon {
+  font-size: var(--font-size-2);
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.context-item.active ion-icon {
+  color: var(--text-1);
+}
+
+.context-item span {
+  font-size: var(--font-size-0);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-context-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preview-context-container::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+.preview-context-container::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: var(--radius-2);
+}
+
+.preview-context-container::-webkit-scrollbar-thumb:hover {
+  background: var(--border-1);
+}
+
+/* Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.preview-context-container.active {
+  animation: slideDown 0.2s ease-out;
+}

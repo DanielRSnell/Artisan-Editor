@@ -3,69 +3,37 @@
     <ion-icon name="cube-outline"></ion-icon>
     <span>{{ block_title }}</span>
   </div>
-  <div class="breakpoint-controls">
-    {% for breakpoint in breakpoints %}
-      <button type="button" class="breakpoint-button" data-breakpoint="{{ breakpoint.id }}" title="{{ breakpoint.name }} ({{ breakpoint.width }}px)"><ion-icon name="{{ breakpoint.icon }}"></ion-icon></button>
-    {% endfor %}
-    <button type="button" class="breakpoint-settings" title="Breakpoint Settings"><ion-icon name="settings-outline"></ion-icon></button>
+  <div class="editor-controls">
+    <div class="breakpoint-controls">
+      {% for breakpoint in breakpoints %}
+        <button type="button" class="breakpoint-button" data-breakpoint="{{ breakpoint.id }}" title="{{ breakpoint.name }} ({{ breakpoint.width }}px)">
+          <ion-icon name="{{ breakpoint.icon }}"></ion-icon>
+        </button>
+      {% endfor %}
+      <button type="button" class="breakpoint-settings" title="Breakpoint Settings">
+        <ion-icon name="settings-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="preview-context-controls">
+      <button type="button" class="preview-context-button" title="Change Preview Context">
+        <ion-icon name="eye-outline"></ion-icon>
+        <span class="current-context">Home</span>
+      </button>
+    </div>
   </div>
-  <div class="global-controls" style="gap: 1rem;">
+  <div class="global-controls">
     <div class="editor-status">
       <div class="editor-status-indicator"></div>
       <span class="editor-status-text">Ready</span>
     </div>
-    <button type="button" class="editor-action-button" id="editor-acf" title="Open Custom Fields"><ion-icon name="list-outline"></ion-icon>
-</button>
-    <button type="button" class="editor-action-button" id="global-save-button" title="Save All Changes"><ion-icon name="save"></ion-icon></button>
-    <button type="button" class="editor-action-button" id="editor-action-close" title="Close Editor"><ion-icon name="close-outline" role="img" class="md hydrated"></ion-icon></button>
+    <button type="button" class="editor-action-button" id="editor-acf" title="Open Custom Fields">
+      <ion-icon name="list-outline"></ion-icon>
+    </button>
+    <button type="button" class="editor-action-button" id="global-save-button" title="Save All Changes">
+      <ion-icon name="save"></ion-icon>
+    </button>
+    <button type="button" class="editor-action-button" id="editor-action-close" title="Close Editor">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
   </div>
 </div>
-
-
-<script>
-(function() {
-    // Function to parse URL parameters
-    function getUrlParameter(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-    }
-
-    // Function to handle navigation with fallback
-    function navigateBack() {
-        // Check if there's a previous page in history
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            // Fallback to client blocks listing page
-            window.location.href = '/wp-admin/edit.php?post_type=client_blocks';
-        }
-    }
-
-    // Function to handle the close button click
-    function handleCloseClick(e) {
-        const isFrame = getUrlParameter('frame') === '1';
-        
-        if (isFrame) {
-            // Send message to parent window
-            window.parent.postMessage('close_artisan_editor', '*');
-        } else {
-            navigateBack();
-        }
-    }
-
-    // Add click handler to existing button when DOM is ready
-    function initializeCloseButton() {
-        const closeButton = document.querySelector('#editor-action-close');
-        if (closeButton) {
-            closeButton.addEventListener('click', handleCloseClick);
-        }
-    }
-
-    // Run when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeCloseButton);
-    } else {
-        initializeCloseButton();
-    }
-})();
-</script>
