@@ -30,8 +30,7 @@ const ClientBlocksEditor = (function($) {
           }
         })
         .catch(error => {
-          console.error('Preview update failed:', error);
-          ClientBlocksStatus.setStatus('error', 'Preview update failed');
+          return error;
         });
     }
   };
