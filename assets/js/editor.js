@@ -15,7 +15,7 @@ const ClientBlocksEditor = (function($) {
     context: '{}'
   };
 
-  const updatePreview = _.debounce(() => {
+  const updatePreview = () => {
     if (window.ClientBlocksPreview) {
       const previewContext = window.ClientBlocksPreviewContext?.getCurrentContext() || { 
         type: 'home', 
@@ -30,10 +30,11 @@ const ClientBlocksEditor = (function($) {
           }
         })
         .catch(error => {
-          return error;
+          console.error('Preview update failed:', error);
+          ClientBlocksStatus.setStatus('error', 'Preview update failed');
         });
     }
-  }, 1000);
+  };
 
   const init = () => {
     require.config({ paths: { vs: ClientBlocksConfig.monacoPath }});
@@ -62,6 +63,12 @@ const ClientBlocksEditor = (function($) {
       $('#global-save-button').on('click', globalSave);
       
       $(document).on('click', '.tab-button', handleTabClick);
+
+      if (window.ClientBlocksPreviewContext) {
+        window.ClientBlocksPreviewContext.setContextChangeHandler(() => {
+          updatePreview();
+        });
+      }
     });
   };
 
@@ -167,6 +174,10 @@ const ClientBlocksEditor = (function($) {
           editors[tabId].setValue(content);
         }
       });
+      
+      if (window.ClientBlocksPreviewContext) {
+        await window.ClientBlocksPreviewContext.init();
+      }
       
       updatePreview();
       ClientBlocksStatus.setStatus('success', 'Ready');

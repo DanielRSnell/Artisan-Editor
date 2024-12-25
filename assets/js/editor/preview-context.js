@@ -1,6 +1,7 @@
 window.ClientBlocksPreviewContext = (function($) {
   let contexts = {};
   let currentContext = { type: 'archive', post_type: 'post' };
+  let onContextChange = null;
 
   const init = async () => {
     try {
@@ -10,11 +11,19 @@ window.ClientBlocksPreviewContext = (function($) {
         }
       });
       contexts = await response.json();
+      await loadSavedContext();
       renderContextSelector();
-      loadSavedContext();
+      
+      if (window.ClientBlocksPreviewLauncher) {
+        window.ClientBlocksPreviewLauncher.updateCurrentContextLabel();
+      }
     } catch (error) {
       console.error('Error loading preview contexts:', error);
     }
+  };
+
+  const setContextChangeHandler = (handler) => {
+    onContextChange = handler;
   };
 
   const renderContextSelector = () => {
@@ -134,16 +143,34 @@ window.ClientBlocksPreviewContext = (function($) {
       const context = JSON.parse($(this).attr('data-context'));
       currentContext = context;
       
-      if (window.ClientBlocksPreviewLauncher) {
-        window.ClientBlocksPreviewLauncher.updateCurrentContextLabel();
-      }
-      
+      saveContext(context);
+
       if (window.ClientBlocksEditor) {
         window.ClientBlocksEditor.updatePreview();
       }
 
-      saveContext(context);
+      if (window.ClientBlocksPreviewLauncher) {
+        window.ClientBlocksPreviewLauncher.updateCurrentContextLabel();
+      }
+
+      closeContextDropdown();
     });
+  };
+
+  const closeContextDropdown = () => {
+    const $container = $('#preview-context-container');
+    $container.removeClass('active');
+  };
+
+  const loadSavedContext = async () => {
+    try {
+      const saved = localStorage.getItem('clientBlocksPreviewContext');
+      if (saved) {
+        currentContext = JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Error loading saved context:', e);
+    }
   };
 
   const saveContext = (context) => {
@@ -154,25 +181,14 @@ window.ClientBlocksPreviewContext = (function($) {
     }
   };
 
-  const loadSavedContext = () => {
-    try {
-      const saved = localStorage.getItem('clientBlocksPreviewContext');
-      if (saved) {
-        currentContext = JSON.parse(saved);
-        renderContextSelector();
-      }
-    } catch (e) {
-      console.error('Error loading saved context:', e);
-    }
-  };
-
   const getCurrentContext = () => {
     return currentContext;
   };
 
   return {
     init,
-    getCurrentContext
+    getCurrentContext,
+    setContextChangeHandler
   };
 })(jQuery);
 

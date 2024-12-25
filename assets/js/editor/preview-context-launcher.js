@@ -61,13 +61,13 @@ window.ClientBlocksPreviewLauncher = (function($) {
       case 'archive':
         return `${context.post_type} Archive`;
       case 'single':
-        return context.label;
+        return context.label || 'Single Post';
       case 'taxonomy':
         return `${context.taxonomy}: ${context.label}`;
       case 'wc_shop':
         return 'Shop';
       case 'wc_product':
-        return context.label;
+        return context.label || 'Product';
       default:
         return context.label || context.type;
     }
