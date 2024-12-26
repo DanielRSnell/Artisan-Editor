@@ -89,6 +89,20 @@
           channel.close()
         }
       })
+      
+      window.addEventListener('DOMContentLoaded', function () {
+        // Send message to parent
+        // window.parent.postMessage(
+        //   {
+        //     type: 'iframe_loaded',
+        //     timestamp: Date.now()
+        //   },
+        //   '*'
+        // )
+      
+        // Optional: Also log in child
+        window.parent.console.log('Child iframe loaded')
+      })
     </script>
   </body>
 </html>

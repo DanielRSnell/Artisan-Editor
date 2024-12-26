@@ -144,3 +144,19 @@ const ClientBlocksEditor = (function($) {
 jQuery(document).ready(function() {
   ClientBlocksEditor.init();
 });
+
+
+window.previewRefresh = function() {
+    const iframe = document.getElementById('preview-frame');
+    if (!iframe) return;
+    
+    try {
+        // Either reload the iframe content
+        iframe.contentWindow.location.reload();
+        
+        // Or force reload by replacing src
+        // iframe.src = iframe.src;
+    } catch (error) {
+        console.error('Error refreshing preview:', error);
+    }
+}
