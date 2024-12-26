@@ -1,0 +1,180 @@
+.file-selector-container {
+  display: flex;
+  gap: 1.75rem !important;
+  padding: var(--spacing-sm);
+  background: var(--bg-surface-2);
+  border-bottom: 1px solid var(--border-1);
+  position: relative;
+}
+
+.custom-file-selector {
+  flex: 1;
+  position: relative;
+}
+
+.file-selector-trigger {
+  width: 100%;
+  height: var(--size-7);
+  padding: 0 var(--spacing-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  color: var(--text-1);
+  font-size: var(--font-size-0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all var(--animation-fade);
+  user-select: none;
+}
+
+.file-selector-trigger:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-1);
+}
+
+.file-selector-trigger ion-icon {
+  font-size: var(--font-size-2);
+  color: var(--text-2);
+  transition: transform 0.2s ease;
+}
+
+.file-selector-trigger.active ion-icon {
+  transform: rotate(180deg);
+}
+
+.file-selector-dropdown {
+  visibility: hidden;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-height: 90vh;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-3);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+.file-selector-dropdown.active {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.file-selector-search {
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-1);
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 1;
+}
+
+.file-selector-search input {
+  width: 96% !important;
+  position: relative;
+  height: var(--size-7);
+  padding: 0 var(--spacing-sm);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-2);
+  color: var(--text-1);
+  font-size: var(--font-size-0);
+}
+
+.file-selector-search input:focus {
+  outline: none;
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 2px var(--accent-2);
+}
+
+.file-selector-options {
+  padding: var(--spacing-xs);
+}
+
+.file-selector-option {
+  padding: var(--spacing-sm);
+  color: var(--text-1);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  border-radius: var(--radius-2);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.file-selector-option:hover {
+  background: var(--bg-surface-2);
+}
+
+.file-selector-option.selected {
+  background: var(--accent-1);
+  color: var(--text-1);
+}
+
+.file-selector-option ion-icon {
+  font-size: var(--font-size-2);
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.file-selector-option.selected ion-icon {
+  color: var(--text-1);
+}
+
+.file-selector-option span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.create-file-button {
+  width: var(--size-7);
+  height: var(--size-7);
+  padding: 0;
+  border: 1px solid var(--border-2);
+  background: var(--bg-surface);
+  color: var(--text-2);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  transition: all var(--animation-fade);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.create-file-button:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-1);
+  color: var(--text-1);
+}
+
+.create-file-button ion-icon {
+  font-size: var(--font-size-2);
+}
+
+.file-selector-empty {
+  padding: var(--spacing-sm);
+  color: var(--text-2);
+  text-align: center;
+  font-size: var(--font-size-0);
+}
+
+.file-selector-wrapper {
+  display: none;
+}
+
+.file-selector-wrapper.active {
+  display: block;
+}

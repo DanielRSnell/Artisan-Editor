@@ -1,0 +1,16 @@
+.editor-pane .file-selector-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.editor-pane .file-selector-dropdown::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+.editor-pane .file-selector-dropdown::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: var(--radius-2);
+}
+
+.editor-pane .file-selector-dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--border-1);
+}

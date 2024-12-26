@@ -3,8 +3,7 @@ namespace ClientBlocks;
 
 use ClientBlocks\Admin\Editor\EditorPage;
 use ClientBlocks\API\RestController;
-use ClientBlocks\Admin\Editor\GlobalCSSManager;
-use ClientBlocks\Admin\Editor\GlobalJSManager;
+use ClientBlocks\Admin\Editor\GlobalFilesManager;
 use ClientBlocks\Blocks\Registry\BlockRegistrar;
 use ClientBlocks\PostType\BlockPostType;
 use Timber\Timber;
@@ -42,8 +41,7 @@ class Plugin {
     private function init_modules() {
         BlockPostType::instance();
         BlockRegistrar::instance();
-        GlobalCSSManager::instance();
-        GlobalJSManager::instance();
+        GlobalFilesManager::instance();
         EditorPage::instance();
         RestController::instance();
     }
